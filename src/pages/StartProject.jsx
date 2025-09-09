@@ -1,108 +1,81 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Container,
-  FormControl,
-  FormLabel,
-  Input,
-  Textarea,
-  Heading,
-  VStack,
-  Text,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, Button, Container, FormControl, FormLabel, Input, Textarea, VStack, Heading, useToast } from "@chakra-ui/react";
+import { send } from "@emailjs/browser";
 
 export default function StartProject() {
+  const [form, setForm] = useState({ from_name: "", from_email: "", message: "" });
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    requirements: "",
-  });
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    // For now just show a success toast — later you can connect it to EmailJS or backend
+  console.log("Submitting form with:", form); // 👈 log form data
+  try {
+    const response = await send(
+      "service_egtaixl",        // Your Service ID
+      "template_l97vlat",       // Your Template ID
+      form,
+      "9bFVuNz0SuH0xpeD1"        // Your latest Public Key
+    );
+
+    console.log("EmailJS response:", response); // 👈 log response
+
     toast({
-      title: "Project request sent!",
-      description: "We’ll get back to you at " + form.email,
+      title: "Message sent!",
+      description: "We’ve received your request and will contact you shortly.",
       status: "success",
       duration: 4000,
       isClosable: true,
     });
 
-    // Clear form
-    setForm({ name: "", email: "", requirements: "" });
-  };
+    setForm({ from_name: "", from_email: "", message: "" });
+  } catch (error) {
+    console.error("EmailJS Error:", error); // 👈 log error
+    toast({
+      title: "Error",
+      description: "Something went wrong. Please try again later.",
+      status: "error",
+      duration: 4000,
+      isClosable: true,
+    });
+  } finally {
+    setLoading(false); // ✅ this ensures button stops loading
+  }
+};
 
   return (
-    <Box bg="offwhite.500" minH="100vh" py={16}>
-      <Container maxW="2xl" bg="white" p={10} rounded="2xl" shadow="xl">
-        <VStack spacing={6} as="form" onSubmit={handleSubmit}>
-          <Heading size="lg" color="gold.500">
-            Start a Project 🚀
-          </Heading>
-          <Text color="gray.600">
-            Tell us about your project requirements and we’ll reach out.
-          </Text>
-
-          {/* Name Field */}
-          <FormControl isRequired>
-            <FormLabel>Your Name</FormLabel>
-            <Input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-            />
+    <Container maxW="2xl" py={20}>
+      <VStack spacing={8} align="stretch">
+        <Heading as="h2" size="xl" textAlign="center">
+          Start a Project 🚀
+        </Heading>
+        <Box as="form" onSubmit={handleSubmit} bg="white" p={8} rounded="2xl" shadow="lg">
+          <FormControl id="from_name" isRequired mb={4}>
+            <FormLabel>Name</FormLabel>
+            <Input name="from_name" value={form.from_name} onChange={handleChange} placeholder="Your Name" />
           </FormControl>
 
-          {/* Email Field */}
-          <FormControl isRequired>
-            <FormLabel>Your Email</FormLabel>
-            <Input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-            />
+          <FormControl id="from_email" isRequired mb={4}>
+            <FormLabel>Email</FormLabel>
+            <Input type="email" name="from_email" value={form.from_email} onChange={handleChange} placeholder="Your Email" />
           </FormControl>
 
-          {/* Requirements Field */}
-          <FormControl isRequired>
-            <FormLabel>Project Requirements</FormLabel>
-            <Textarea
-              name="requirements"
-              value={form.requirements}
-              onChange={handleChange}
-              placeholder="Briefly describe your project..."
-              rows={5}
-            />
+          <FormControl id="message" isRequired mb={6}>
+            <FormLabel>Requirements</FormLabel>
+            <Textarea name="message" value={form.message} onChange={handleChange} placeholder="Describe your project requirements..." />
           </FormControl>
 
-          <Button
-            type="submit"
-            bg="gold.500"
-            color="white"
-            size="lg"
-            rounded="2xl"
-            px={8}
-            _hover={{ bg: "black.500", color: "gold.500" }}
-          >
-            Submit
+          <Button type="submit" colorScheme="yellow" isLoading={loading} w="full" rounded="xl">
+            Send Request
           </Button>
-        </VStack>
-      </Container>
-    </Box>
+        </Box>
+      </VStack>
+    </Container>
   );
 }
