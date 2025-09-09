@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { keyframes } from "@emotion/react"; // Correct keyframes import
 import { FaInstagram } from "react-icons/fa"; // Instagram icon
 import hatImg from "./assets/fedora.png"; // Make sure this file exists
+import { Link } from "react-router-dom"; // 👈 only import once
 
 const MotionBox = motion(Box);
 
@@ -27,20 +28,33 @@ const gradientAnimation = keyframes`
 `;
 
 // ServiceCard component
-function ServiceCard({ title, blurb }) {
+function ServiceCard({ title, description, link }) {
   return (
     <Box
       p={6}
+      borderWidth={1}
+      borderRadius="2xl"
       bg="white"
-      rounded="2xl"
-      shadow="lg"
-      minW="250px"
-      _hover={{ transform: "translateY(-10px)", shadow: "2xl" }}
-      transition="all 0.3s ease"
+      boxShadow="lg"
+      textAlign="center"
     >
-      <Heading as="h4" size="md">{title}</Heading>
-      <Text mt={3} color="gray.600">{blurb}</Text>
-      <Text mt={4} color="gold.500" fontWeight="medium">Learn more →</Text>
+      <Heading size="md" mb={4}>
+        {title}
+      </Heading>
+      <Text mb={4} color="gray.600">
+        {description}
+      </Text>
+      {link && (
+        <Button
+          as={Link}
+          to={link}
+          variant="link"
+          color="gold.500"
+          fontWeight="bold"
+        >
+          Learn more →
+        </Button>
+      )}
     </Box>
   );
 }
@@ -110,23 +124,38 @@ export default function App() {
             Your prime partner for web, app and AI solutions
           </Text>
           <Button
-            size="lg"
-            mt={8}
-            bg="gold.500"
-            color="white"
-            _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
-            transition="all 0.3s ease"
-            rounded="2xl"
-          >
-            Start a Project
-          </Button>
+  as={Link}
+  to="/start-project"
+  size="lg"
+  mt={8}
+  bg="gold.500"
+  color="white"
+  _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
+  transition="all 0.3s ease"
+  rounded="2xl"
+>
+  Start a Project
+</Button>
+
         </MotionBox>
 
         {/* Services Section */}
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={16} justifyItems="center">
-          <ServiceCard title="Web Development" blurb="Performance-first, accessible websites with modern UX." />
-          <ServiceCard title="App Development" blurb="Cross-platform mobile & desktop apps that scale." />
-          <ServiceCard title="AI Solutions" blurb="Custom ML/AI systems, automation, and integrations." />
+          <ServiceCard
+            title="Web Development"
+            description="Performance-first, accessible websites with modern UX."
+            link="/web-development"
+          />
+          <ServiceCard
+            title="App Development"
+            description="Cross-platform mobile & desktop apps that scale."
+            link="/app-development"
+          />
+          <ServiceCard
+            title="AI Solutions"
+            description="Custom ML/AI systems, automation, and integrations."
+            link="/ai-solutions"
+          />
         </SimpleGrid>
 
         {/* Contact Section */}
