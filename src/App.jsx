@@ -124,19 +124,18 @@ export default function App() {
             Your prime partner for web, app and AI solutions
           </Text>
           <Button
-  as={Link}
-  to="/start-project"
-  size="lg"
-  mt={8}
-  bg="gold.500"
-  color="white"
-  _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
-  transition="all 0.3s ease"
-  rounded="2xl"
->
-  Start a Project
-</Button>
-
+            as={Link}
+            to="/start-project"
+            size="lg"
+            mt={8}
+            bg="gold.500"
+            color="white"
+            _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
+            transition="all 0.3s ease"
+            rounded="2xl"
+          >
+            Start a Project
+          </Button>
         </MotionBox>
 
         {/* Services Section */}
@@ -157,6 +156,120 @@ export default function App() {
             link="/ai-solutions"
           />
         </SimpleGrid>
+
+       {/* Pricing Section */}
+<SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={16} justifyItems="center">
+
+  {/* Basic Plan */}
+  <Box p={10} borderWidth={3} borderRadius="2xl" bg="gray.50" shadow="lg" textAlign="center">
+    <Heading size="lg" mb={2}>Basic</Heading>
+    <Text fontSize="sm" color="gray.600" mb={6}>
+      For individuals and small projects
+    </Text>
+
+    <Text fontSize="4xl" fontWeight="bold" mb={6}>
+      $299 <Box as="span" fontSize="md" color="gray.500">/project</Box>
+    </Text>
+
+    <Button
+      as={Link}
+      to="/basic-features"
+      mt={4}
+      colorScheme="blackAlpha"
+      bg="white"
+      color="black"
+      rounded="xl"
+      shadow="md"
+      _hover={{ bg: "black", color: "white" }}
+    >
+      Learn More
+    </Button>
+  </Box>
+
+  {/* Pro Plan (Most Popular) */}
+  <Box position="relative">
+    <Box
+      position="absolute"
+      top="-3"
+      left="50%"
+      transform="translateX(-50%)"
+      bg="white"
+      color="black"
+      fontWeight="bold"
+      fontSize="xs"
+      px={3}
+      py={1}
+      rounded="full"
+      shadow="lg"
+      border="1px solid"
+      borderColor="gray.200"
+      zIndex={1}
+    >
+      ⭐ Most Popular
+    </Box>
+
+    <Box
+      p={10}
+      borderWidth={3}
+      borderRadius="2xl"
+      bgGradient="linear(to-br, #FFD700, #C5A000)"
+      shadow="2xl"
+      textAlign="center"
+      transform="scale(1.05)"
+      _hover={{ transform: "scale(1.08)", transition: "0.3s" }}
+    >
+      <Heading size="lg" mb={2} color="white">Pro</Heading>
+      <Text fontSize="sm" color="whiteAlpha.800" mb={6}>
+        Best for growing startups and businesses ready to scale
+      </Text>
+
+      <Text fontSize="4xl" fontWeight="bold" mb={6} color="white">
+        $999 <Box as="span" fontSize="md" color="whiteAlpha.800">/project</Box>
+      </Text>
+
+      <Button
+        as={Link}
+        to="/pro-features"
+        mt={4}
+        colorScheme="blackAlpha"
+        bg="white"
+        color="black"
+        rounded="xl"
+        shadow="md"
+        _hover={{ bg: "black", color: "white" }}
+      >
+        Learn More
+      </Button>
+    </Box>
+  </Box>
+
+  {/* Enterprise Plan */}
+  <Box p={10} borderWidth={3} borderRadius="2xl" bg="gray.50" shadow="lg" textAlign="center">
+    <Heading size="lg" mb={2}>Enterprise</Heading>
+    <Text fontSize="sm" color="gray.600" mb={6}>
+      Tailored solutions for large-scale projects
+    </Text>
+
+    <Text fontSize="4xl" fontWeight="bold" mb={6}>
+      $1999 <Box as="span" fontSize="md" color="gray.500">/project</Box>
+    </Text>
+
+    <Button
+      as={Link}
+      to="/enterprise-features"
+      mt={4}
+      colorScheme="blackAlpha"
+      bg="white"
+      color="black"
+      rounded="xl"
+      shadow="md"
+      _hover={{ bg: "black", color: "white" }}
+    >
+      Learn More
+    </Button>
+  </Box>
+
+</SimpleGrid>
 
         {/* Contact Section */}
         <Box mt={20} textAlign="center">

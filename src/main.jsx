@@ -9,6 +9,10 @@ import StartProject from "./pages/StartProject";
 import WebDev from "./pages/WebDev";
 import AppDev from "./pages/AppDev";
 import AISolutions from "./pages/AISolutions";
+import BasicFeatures from "./pages/BasicFeatures";
+import ProFeatures from "./pages/ProFeatures";
+import EnterpriseFeatures from "./pages/EnterpriseFeatures";
+
 
 const theme = extendTheme({
   colors: {
@@ -32,6 +36,9 @@ createRoot(document.getElementById("root")).render(
           <Route path="/app-development" element={<AppDev />} />
           <Route path="/ai-solutions" element={<AISolutions />} />
           <Route path="/start-project" element={<StartProject />} />
+          <Route path="/basic-features" element={<BasicFeatures />} />
+          <Route path="/pro-features" element={<ProFeatures />} />
+          <Route path="/enterprise-features" element={<EnterpriseFeatures />} />
         </Routes>
       </BrowserRouter>
     </ChakraProvider>
