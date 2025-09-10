@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, Container, Heading, Text, VStack, SimpleGrid } from "@chakra-ui/react";
-import { motion } from "framer-motion";
-import { keyframes } from "@emotion/react"; // Correct keyframes import
-import { FaInstagram } from "react-icons/fa"; // Instagram icon
-import hatImg from "./assets/fedora.png"; // Make sure this file exists
-import { Link } from "react-router-dom"; // 👈 only import once
+import { motion, useAnimation } from "framer-motion";
+import { keyframes } from "@emotion/react";
+import { FaInstagram } from "react-icons/fa";
+import hatImg from "./assets/fedora.png";
+import { Link } from "react-router-dom";
 
 const MotionBox = motion(Box);
+const MotionButton = motion(Button);
 
 // Floating animation for hat
 const floatAnimation = {
@@ -27,6 +28,38 @@ const gradientAnimation = keyframes`
   100% { background-position: 0% 50%; }
 `;
 
+// Shine effect keyframes
+const shineAnimation = keyframes`
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`;
+
+// Magnetic hover effect
+const MagneticButton = ({ children, ...props }) => {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    setPos({ x: x * 0.2, y: y * 0.2 });
+  };
+
+  const handleMouseLeave = () => setPos({ x: 0, y: 0 });
+
+  return (
+    <MotionButton
+      {...props}
+      animate={{ x: pos.x, y: pos.y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </MotionButton>
+  );
+};
+
 // ServiceCard component
 function ServiceCard({ title, description, link }) {
   return (
@@ -38,7 +71,7 @@ function ServiceCard({ title, description, link }) {
       boxShadow="lg"
       textAlign="center"
     >
-      <Heading size="md" mb={4}>
+      <Heading size="md" mb={4} fontFamily="'Playfair Display', serif">
         {title}
       </Heading>
       <Text mb={4} color="gray.600">
@@ -115,7 +148,11 @@ export default function App() {
               ml={4}
               bgGradient="linear(to-r, #FFD700, #FFA500, #FFD700)"
               bgClip="text"
-              style={{ animation: `${gradientAnimation} 5s ease infinite` }}
+              style={{
+                backgroundSize: "200% auto",
+                animation: `${shineAnimation} 3s linear infinite`,
+              }}
+              fontFamily="'Playfair Display', serif"
             >
               Prime
             </Box>
@@ -123,7 +160,7 @@ export default function App() {
           <Text fontSize={{ base: "xl", md: "2xl" }} mt={4} color="gray.600">
             Your prime partner for web, app and AI solutions
           </Text>
-          <Button
+          <MagneticButton
             as={Link}
             to="/start-project"
             size="lg"
@@ -133,9 +170,14 @@ export default function App() {
             _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
             transition="all 0.3s ease"
             rounded="2xl"
+            style={{
+              backgroundImage: "linear-gradient(120deg, rgba(255,215,0,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,215,0,0.2) 100%)",
+              backgroundSize: "200% auto",
+              animation: `${shineAnimation} 5s linear infinite`,
+            }}
           >
             Start a Project
-          </Button>
+          </MagneticButton>
         </MotionBox>
 
         {/* Services Section */}
@@ -161,17 +203,17 @@ export default function App() {
 <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={16} justifyItems="center">
 
   {/* Basic Plan */}
-  <Box p={10} borderWidth={3} borderRadius="2xl" bg="gray.50" shadow="lg" textAlign="center">
-    <Heading size="lg" mb={2}>Basic</Heading>
+  <Box p={10} borderWidth={3} borderRadius="2xl" bg="rgba(255,255,255,0.7)" backdropFilter="blur(10px)" shadow="lg" textAlign="center">
+    <Heading size="lg" mb={2} fontFamily="'Playfair Display', serif">Basic</Heading>
     <Text fontSize="sm" color="gray.600" mb={6}>
       For individuals and small projects
     </Text>
 
     <Text fontSize="4xl" fontWeight="bold" mb={6}>
-      $299 <Box as="span" fontSize="md" color="gray.500">/project</Box>
+      Starting from $299 <Box as="span" fontSize="md" color="gray.500">/project</Box>
     </Text>
 
-    <Button
+    <MagneticButton
       as={Link}
       to="/basic-features"
       mt={4}
@@ -183,7 +225,7 @@ export default function App() {
       _hover={{ bg: "black", color: "white" }}
     >
       Learn More
-    </Button>
+    </MagneticButton>
   </Box>
 
   {/* Pro Plan (Most Popular) */}
@@ -213,21 +255,22 @@ export default function App() {
       borderWidth={3}
       borderRadius="2xl"
       bgGradient="linear(to-br, #FFD700, #C5A000)"
+      backdropFilter="blur(12px)"
       shadow="2xl"
       textAlign="center"
       transform="scale(1.05)"
       _hover={{ transform: "scale(1.08)", transition: "0.3s" }}
     >
-      <Heading size="lg" mb={2} color="white">Pro</Heading>
+      <Heading size="lg" mb={2} color="white" fontFamily="'Playfair Display', serif">Pro</Heading>
       <Text fontSize="sm" color="whiteAlpha.800" mb={6}>
         Best for growing startups and businesses ready to scale
       </Text>
 
       <Text fontSize="4xl" fontWeight="bold" mb={6} color="white">
-        $999 <Box as="span" fontSize="md" color="whiteAlpha.800">/project</Box>
+        Starting from $999 <Box as="span" fontSize="md" color="whiteAlpha.800">/project</Box>
       </Text>
 
-      <Button
+      <MagneticButton
         as={Link}
         to="/pro-features"
         mt={4}
@@ -239,22 +282,22 @@ export default function App() {
         _hover={{ bg: "black", color: "white" }}
       >
         Learn More
-      </Button>
+      </MagneticButton>
     </Box>
   </Box>
 
   {/* Enterprise Plan */}
-  <Box p={10} borderWidth={3} borderRadius="2xl" bg="gray.50" shadow="lg" textAlign="center">
-    <Heading size="lg" mb={2}>Enterprise</Heading>
+  <Box p={10} borderWidth={3} borderRadius="2xl" bg="rgba(255,255,255,0.7)" backdropFilter="blur(10px)" shadow="lg" textAlign="center">
+    <Heading size="lg" mb={2} fontFamily="'Playfair Display', serif">Enterprise</Heading>
     <Text fontSize="sm" color="gray.600" mb={6}>
       Tailored solutions for large-scale projects
     </Text>
 
     <Text fontSize="4xl" fontWeight="bold" mb={6}>
-      $1999 <Box as="span" fontSize="md" color="gray.500">/project</Box>
+      Starting from $1999 <Box as="span" fontSize="md" color="gray.500">/project</Box>
     </Text>
 
-    <Button
+    <MagneticButton
       as={Link}
       to="/enterprise-features"
       mt={4}
@@ -266,7 +309,7 @@ export default function App() {
       _hover={{ bg: "black", color: "white" }}
     >
       Learn More
-    </Button>
+    </MagneticButton>
   </Box>
 
 </SimpleGrid>
@@ -274,7 +317,8 @@ export default function App() {
         {/* Contact Section */}
         <Box mt={20} textAlign="center">
           <VStack
-            bg="white"
+            bg="rgba(255,255,255,0.7)"
+            backdropFilter="blur(12px)"
             rounded="2xl"
             shadow="lg"
             py={16}
@@ -283,7 +327,7 @@ export default function App() {
             maxW="3xl"
             mx="auto"
           >
-            <Heading as="h3" size="lg">
+            <Heading as="h3" size="lg" fontFamily="'Playfair Display', serif">
               Get in Touch
             </Heading>
             <Text fontSize="lg" color="gray.600">
@@ -291,7 +335,7 @@ export default function App() {
             </Text>
 
             {/* Email Button */}
-            <Button
+            <MagneticButton
               as="a"
               href="mailto:contact.osscaprime@gmail.com"
               bg="gold.500"
@@ -303,10 +347,10 @@ export default function App() {
               transition="all 0.3s ease"
             >
               ✉️ Email Us
-            </Button>
+            </MagneticButton>
 
             {/* Instagram Button */}
-            <Button
+            <MagneticButton
               as="a"
               href="https://www.instagram.com/ossca_prime"
               target="_blank"
@@ -322,7 +366,7 @@ export default function App() {
               transition="all 0.3s ease"
             >
               @ossca_prime
-            </Button>
+            </MagneticButton>
 
             <Text fontSize="sm" color="gray.500">
               Or copy our email: <Box as="span" fontWeight="bold">contact.osscaprime@gmail.com</Box>
