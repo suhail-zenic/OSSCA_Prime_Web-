@@ -374,11 +374,26 @@ export default function App() {
           </VStack>
         </Box>
 
-        {/* Footer */}
-        <VStack as="footer" mt={20} py={10} spacing={2} fontSize="sm" color="gray.600">
-          <Text>© {new Date().getFullYear()} OSSCA Prime — Your prime partner for web, app and AI solutions.</Text>
-        </VStack>
-      </Container>
-    </Box>
-  );
+ {/* Footer */}
+<VStack as="footer" mt={20} py={10} spacing={2} fontSize="sm" color="gray.600">
+  <Text>© {new Date().getFullYear()} OSSCA Prime — Your prime partner for web, app and AI solutions.</Text>
+  <Text>
+    <Link
+      to="/terms"
+      style={{ fontWeight: "600", textDecoration: "none" }}
+    >
+      Terms & Conditions
+    </Link>{" "}
+    |{" "}
+    <Link
+      to="/privacy"
+      style={{ fontWeight: "600", textDecoration: "none" }}
+    >
+      Privacy Policy
+    </Link>
+  </Text>
+</VStack>
+</Container>
+</Box>
+);
 }

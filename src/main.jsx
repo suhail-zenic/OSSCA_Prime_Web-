@@ -12,7 +12,8 @@ import AISolutions from "./pages/AISolutions";
 import BasicFeatures from "./pages/BasicFeatures";
 import ProFeatures from "./pages/ProFeatures";
 import EnterpriseFeatures from "./pages/EnterpriseFeatures";
-
+import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyAndPolicy from "./pages/PrivacyAndPolicy";
 
 const theme = extendTheme({
   colors: {
@@ -39,6 +40,8 @@ createRoot(document.getElementById("root")).render(
           <Route path="/basic-features" element={<BasicFeatures />} />
           <Route path="/pro-features" element={<ProFeatures />} />
           <Route path="/enterprise-features" element={<EnterpriseFeatures />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyAndPolicy />} />
         </Routes>
       </BrowserRouter>
     </ChakraProvider>
