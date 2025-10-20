@@ -1,0 +1,8 @@
+[33m80715bd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33md1fed0a[m[33m ([m[1;31morigin/master[m[33m)[m HEAD@{1}: commit: Add pricing pages to the website, import and route it
+[33m80715bd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m HEAD@{2}: commit: add index.html file
+[33m4e939f3[m HEAD@{3}: commit: Error fix
+[33mb53b50d[m HEAD@{4}: commit: Updated project structure for Vite compatibility
+[33macafb77[m HEAD@{5}: commit: Added Start Project page with form (name, email, requirements), learn more pages and linked from Hero buttonfeat: add Start Project form with EmailJS integration
+[33m00e9a46[m HEAD@{6}: commit: Added Start Project page with form (name, email, requirements), learn more pages and linked from Hero button
+[33m08d42f9[m HEAD@{7}: commit (initial): feat: add premium hero, glossy OSSCA, floating hat, gradient Prime, services, and contact section
