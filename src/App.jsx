@@ -783,64 +783,307 @@ export default function App() {
           </VStack>
         </MotionBox>
 
-        {/* Contact Section */}
-        <Box id="contact" mt={20} textAlign="center">
-          <VStack
-            bg="rgba(255,255,255,0.7)"
-            backdropFilter="blur(12px)"
-            rounded="2xl"
-            shadow="lg"
-            py={16}
-            px={{ base: 6, md: 12 }}
-            spacing={6}
-            maxW="3xl"
-            mx="auto"
+        {/* Enhanced Contact Section */}
+        <Box id="contact" mt={20}>
+          <MotionBox
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
           >
-            <Heading as="h3" size="lg" fontFamily="'Playfair Display', serif">
-              Get in Touch
-            </Heading>
-            <Text fontSize="lg" color="gray.600">
-              For inquiries or collaborations, reach out to us:
-            </Text>
+            <VStack spacing={12}>
+              {/* Header */}
+              <VStack spacing={4} textAlign="center">
+                <Heading
+                  as="h3"
+                  fontSize={{ base: "3xl", md: "4xl" }}
+                  fontFamily="'Playfair Display', serif"
+                  bgGradient="linear(to-r, #FFD700, #FFA500, #FFD700)"
+                  bgClip="text"
+                  style={{
+                    backgroundSize: "200% auto",
+                    animation: `${shineAnimation} 3s linear infinite`,
+                  }}
+                >
+                  Get in Touch
+                </Heading>
+                <Text fontSize="xl" color="gray.600" maxW="2xl">
+                  Have a project in mind? We're here to turn your vision into reality. 
+                  Let's start a conversation!
+                </Text>
+              </VStack>
 
-            {/* Email Button */}
-            <MagneticButton
-              as="a"
-              href="mailto:contact.osscaprime@gmail.com"
-              bg="gold.500"
-              color="white"
-              _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
-              size="lg"
-              rounded="2xl"
-              px={8}
-              transition="all 0.3s ease"
-            >
-              ✉️ Email Us
-            </MagneticButton>
+              {/* Main Contact Box */}
+              <Box
+                bg="rgba(255,255,255,0.8)"
+                backdropFilter="blur(12px)"
+                rounded="2xl"
+                shadow="2xl"
+                p={{ base: 8, md: 12 }}
+                maxW="5xl"
+                w="full"
+                mx="auto"
+                border="2px solid"
+                borderColor="gold.200"
+              >
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
+                  {/* Left Side - Contact Info */}
+                  <VStack spacing={6} align="start">
+                    <Heading size="md" fontFamily="'Playfair Display', serif">
+                      Contact Information
+                    </Heading>
+                    
+                    {/* Email */}
+                    <HStack
+                      spacing={4}
+                      p={4}
+                      bg="gold.50"
+                      rounded="xl"
+                      w="full"
+                      _hover={{ bg: "gold.100", transform: "translateX(5px)" }}
+                      transition="all 0.3s ease"
+                    >
+                      <Box
+                        bg="gold.500"
+                        color="white"
+                        p={3}
+                        rounded="lg"
+                        fontSize="xl"
+                      >
+                        ✉️
+                      </Box>
+                      <VStack spacing={0} align="start">
+                        <Text fontSize="xs" color="gray.500" fontWeight="bold">
+                          EMAIL
+                        </Text>
+                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                          contact.osscaprime@gmail.com
+                        </Text>
+                      </VStack>
+                    </HStack>
 
-            {/* Instagram Button */}
-            <MagneticButton
-              as="a"
-              href="https://www.instagram.com/ossca_prime"
-              target="_blank"
-              rel="noopener noreferrer"
-              leftIcon={<FaInstagram />}
-              variant="outline"
-              borderColor="gold.500"
-              color="gold.500"
-              _hover={{ bg: "gold.500", color: "white", transform: "scale(1.05)" }}
-              size="lg"
-              rounded="2xl"
-              px={8}
-              transition="all 0.3s ease"
-            >
-              @ossca_prime
-            </MagneticButton>
+                    {/* Response Time */}
+                    <HStack
+                      spacing={4}
+                      p={4}
+                      bg="green.50"
+                      rounded="xl"
+                      w="full"
+                      _hover={{ bg: "green.100", transform: "translateX(5px)" }}
+                      transition="all 0.3s ease"
+                    >
+                      <Box
+                        bg="green.500"
+                        color="white"
+                        p={3}
+                        rounded="lg"
+                        fontSize="xl"
+                      >
+                        ⚡
+                      </Box>
+                      <VStack spacing={0} align="start">
+                        <Text fontSize="xs" color="gray.500" fontWeight="bold">
+                          RESPONSE TIME
+                        </Text>
+                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                          Within 24 hours
+                        </Text>
+                      </VStack>
+                    </HStack>
 
-            <Text fontSize="sm" color="gray.500">
-              Or copy our email: <Box as="span" fontWeight="bold">contact.osscaprime@gmail.com</Box>
-            </Text>
-          </VStack>
+                    {/* Location */}
+                    <HStack
+                      spacing={4}
+                      p={4}
+                      bg="blue.50"
+                      rounded="xl"
+                      w="full"
+                      _hover={{ bg: "blue.100", transform: "translateX(5px)" }}
+                      transition="all 0.3s ease"
+                    >
+                      <Box
+                        bg="blue.500"
+                        color="white"
+                        p={3}
+                        rounded="lg"
+                        fontSize="xl"
+                      >
+                        🌍
+                      </Box>
+                      <VStack spacing={0} align="start">
+                        <Text fontSize="xs" color="gray.500" fontWeight="bold">
+                          AVAILABILITY
+                        </Text>
+                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                          Worldwide service, 24/7
+                        </Text>
+                      </VStack>
+                    </HStack>
+
+                    {/* Stats */}
+                    <SimpleGrid columns={2} spacing={4} w="full" mt={4}>
+                      <VStack
+                        p={4}
+                        bg="rgba(255,215,0,0.1)"
+                        rounded="xl"
+                        spacing={1}
+                      >
+                        <Text fontSize="2xl" fontWeight="bold" color="gold.600">
+                          50+
+                        </Text>
+                        <Text fontSize="xs" color="gray.600" textAlign="center">
+                          Projects Delivered
+                        </Text>
+                      </VStack>
+                      <VStack
+                        p={4}
+                        bg="rgba(255,215,0,0.1)"
+                        rounded="xl"
+                        spacing={1}
+                      >
+                        <Text fontSize="2xl" fontWeight="bold" color="gold.600">
+                          100%
+                        </Text>
+                        <Text fontSize="xs" color="gray.600" textAlign="center">
+                          Client Satisfaction
+                        </Text>
+                      </VStack>
+                    </SimpleGrid>
+                  </VStack>
+
+                  {/* Right Side - Quick Actions */}
+                  <VStack spacing={6} justify="center">
+                    <Heading size="md" fontFamily="'Playfair Display', serif">
+                      Quick Actions
+                    </Heading>
+
+                    {/* Email Button */}
+                    <MagneticButton
+                      as="a"
+                      href="mailto:contact.osscaprime@gmail.com"
+                      bg="gold.500"
+                      color="white"
+                      _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "2xl" }}
+                      size="lg"
+                      rounded="xl"
+                      w="full"
+                      h="60px"
+                      fontSize="lg"
+                      transition="all 0.3s ease"
+                      style={{
+                        backgroundImage: "linear-gradient(120deg, rgba(255,215,0,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,215,0,0.2) 100%)",
+                        backgroundSize: "200% auto",
+                        animation: `${shineAnimation} 5s linear infinite`,
+                      }}
+                    >
+                      <HStack spacing={3}>
+                        <Text fontSize="2xl">✉️</Text>
+                        <VStack spacing={0} align="start">
+                          <Text fontSize="sm" opacity={0.9}>
+                            Send Email
+                          </Text>
+                          <Text fontSize="xs" opacity={0.7}>
+                            Get instant reply
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    </MagneticButton>
+
+                    {/* Instagram Button */}
+                    <MagneticButton
+                      as="a"
+                      href="https://www.instagram.com/ossca_prime"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="outline"
+                      borderColor="gold.500"
+                      borderWidth="2px"
+                      color="gold.500"
+                      _hover={{ bg: "gold.500", color: "white", transform: "scale(1.05)", boxShadow: "xl" }}
+                      size="lg"
+                      rounded="xl"
+                      w="full"
+                      h="60px"
+                      fontSize="lg"
+                      transition="all 0.3s ease"
+                    >
+                      <HStack spacing={3}>
+                        <FaInstagram fontSize="24px" />
+                        <VStack spacing={0} align="start">
+                          <Text fontSize="sm">
+                            Follow on Instagram
+                          </Text>
+                          <Text fontSize="xs" opacity={0.7}>
+                            @ossca_prime
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    </MagneticButton>
+
+                    {/* Start Project Button */}
+                    <MagneticButton
+                      as={Link}
+                      to="/start-project"
+                      variant="outline"
+                      borderColor="black.500"
+                      borderWidth="2px"
+                      color="black.500"
+                      _hover={{ bg: "black.500", color: "white", transform: "scale(1.05)", boxShadow: "xl" }}
+                      size="lg"
+                      rounded="xl"
+                      w="full"
+                      h="60px"
+                      fontSize="lg"
+                      transition="all 0.3s ease"
+                    >
+                      <HStack spacing={3}>
+                        <FaRocket fontSize="20px" />
+                        <VStack spacing={0} align="start">
+                          <Text fontSize="sm">
+                            Start Your Project
+                          </Text>
+                          <Text fontSize="xs" opacity={0.7}>
+                            Fill detailed form
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    </MagneticButton>
+
+                    <Divider />
+
+                    {/* Social Proof */}
+                    <VStack spacing={2} w="full">
+                      <HStack spacing={1}>
+                        <FaStar color="#FFD700" />
+                        <FaStar color="#FFD700" />
+                        <FaStar color="#FFD700" />
+                        <FaStar color="#FFD700" />
+                        <FaStar color="#FFD700" />
+                      </HStack>
+                      <Text fontSize="sm" color="gray.600" textAlign="center">
+                        Trusted by businesses worldwide
+                      </Text>
+                    </VStack>
+                  </VStack>
+                </SimpleGrid>
+
+                {/* Bottom Note */}
+                <Box
+                  mt={8}
+                  p={4}
+                  bg="rgba(255,215,0,0.05)"
+                  rounded="lg"
+                  borderLeft="4px solid"
+                  borderColor="gold.500"
+                >
+                  <Text fontSize="sm" color="gray.600">
+                    💡 <Box as="span" fontWeight="bold">Quick tip:</Box> For faster response, 
+                    include your project details, budget, and timeline when reaching out!
+                  </Text>
+                </Box>
+              </Box>
+            </VStack>
+          </MotionBox>
         </Box>
 
  {/* Enhanced Footer */}
@@ -856,21 +1099,6 @@ export default function App() {
           Your prime partner for web, app and AI solutions. 
           Transforming ideas into exceptional digital experiences.
         </Text>
-        <HStack spacing={4}>
-          <Button
-            as="a"
-            href="https://www.instagram.com/ossca_prime"
-            target="_blank"
-            rel="noopener noreferrer"
-            size="sm"
-            variant="ghost"
-            leftIcon={<FaInstagram />}
-            color="gold.500"
-            _hover={{ bg: "gold.50" }}
-          >
-            Instagram
-          </Button>
-        </HStack>
       </VStack>
 
       {/* Services */}
