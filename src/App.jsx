@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Container, Heading, Text, VStack, SimpleGrid, HStack, Icon, Image, Badge, Divider, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useColorModeValue } from "@chakra-ui/react";
-import { motion, useAnimation, useInView } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { keyframes } from "@emotion/react";
-import { FaInstagram, FaRocket, FaUsers, FaAward, FaCode, FaMobile, FaBrain, FaStar, FaQuoteLeft, FaCheckCircle, FaArrowRight, FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { FaInstagram, FaRocket, FaUsers, FaAward, FaCode, FaMobile, FaBrain, FaStar, FaQuoteLeft, FaCheckCircle, FaArrowRight, FaGithub, FaLinkedin, FaTwitter, FaShopify } from "react-icons/fa";
 import hatImg from "./assets/fedora.png";
 import { Link } from "react-router-dom";
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
+
+// Smooth easing for advanced feel (Material-style ease-out)
+const smoothEase = "cubic-bezier(0.4, 0, 0.2, 1)";
+const motionTransition = { duration: 0.5, ease: [0.4, 0, 0.2, 1] };
 
 // Floating animation for hat
 const floatAnimation = {
@@ -27,6 +31,23 @@ const gradientAnimation = keyframes`
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 `;
+
+// Stagger animation variants for advanced scroll reveals
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 }
+  }
+};
+const staggerItem = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
+};
+const staggerItemScale = {
+  hidden: { opacity: 0, scale: 0.96 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
+};
 
 // Shine effect keyframes
 const shineAnimation = keyframes`
@@ -70,8 +91,8 @@ function ServiceCard({ title, description, link, icon }) {
       bg="white"
       boxShadow="lg"
       textAlign="center"
-      _hover={{ transform: "translateY(-5px)", boxShadow: "xl", transition: "all 0.3s ease" }}
-      transition="all 0.3s ease"
+      _hover={{ transform: "translateY(-5px)", boxShadow: "xl", transition: `all 0.35s ${smoothEase}` }}
+      transition={`all 0.35s ${smoothEase}`}
     >
       {icon && (
         <Icon as={icon} w={12} h={12} color="gold.500" mb={4} />
@@ -121,8 +142,8 @@ function TestimonialCard({ name, role, company, content, rating }) {
       borderRadius="2xl"
       boxShadow="lg"
       position="relative"
-      _hover={{ transform: "translateY(-3px)", boxShadow: "xl", transition: "all 0.3s ease" }}
-      transition="all 0.3s ease"
+      _hover={{ transform: "translateY(-3px)", boxShadow: "xl", transition: `all 0.35s ${smoothEase}` }}
+      transition={`all 0.35s ${smoothEase}`}
     >
       <Icon as={FaQuoteLeft} w={6} h={6} color="gold.200" mb={4} />
       <Text mb={4} color="gray.600" fontStyle="italic">
@@ -181,8 +202,8 @@ function PortfolioCard({ title, description, image, tags, link }) {
       borderRadius="2xl"
       overflow="hidden"
       boxShadow="lg"
-      _hover={{ transform: "translateY(-5px)", boxShadow: "xl", transition: "all 0.3s ease" }}
-      transition="all 0.3s ease"
+      _hover={{ transform: "translateY(-5px)", boxShadow: "xl", transition: `all 0.35s ${smoothEase}` }}
+      transition={`all 0.35s ${smoothEase}`}
     >
       <Box h="200px" bg="gray.100" position="relative">
         <Box
@@ -229,6 +250,10 @@ function PortfolioCard({ title, description, image, tags, link }) {
 
 export default function App() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const progressScale = useTransform(scrollYProgress, [0, 0.95], [0, 1]);
+  const parallaxY1 = useTransform(scrollYProgress, [0, 0.3], [0, 40]);
+  const parallaxY2 = useTransform(scrollYProgress, [0.2, 0.5], [0, -30]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -247,6 +272,17 @@ export default function App() {
 
   return (
     <Box bg="offwhite.500" minH="100vh" position="relative" overflow="hidden">
+      {/* Scroll progress bar */}
+      <MotionBox
+        position="fixed"
+        top={0}
+        left={0}
+        right={0}
+        h="3px"
+        bg="gold.500"
+        zIndex={1001}
+        style={{ scaleX: progressScale, transformOrigin: "0%" }}
+      />
       {/* Navigation Bar */}
       <MotionBox
         position="fixed"
@@ -258,7 +294,7 @@ export default function App() {
         backdropFilter={isScrolled ? "blur(10px)" : "none"}
         borderBottom={isScrolled ? "1px solid" : "none"}
         borderColor="gray.200"
-        transition="all 0.3s ease"
+        transition={`all 0.35s ${smoothEase}`}
       >
         <Container maxW="7xl">
           <HStack justify="center" py={4}>
@@ -282,29 +318,13 @@ export default function App() {
           </HStack>
         </Container>
       </MotionBox>
-      {/* Decorative floating circles */}
-      <MotionBox
-        position="absolute"
-        top="20%"
-        left="10%"
-        w="40px"
-        h="40px"
-        bg="gold.200"
-        rounded="full"
-        opacity={0.3}
-        style={{ animation: `${floatCircle} 6s ease-in-out infinite` }}
-      />
-      <MotionBox
-        position="absolute"
-        top="50%"
-        right="15%"
-        w="60px"
-        h="60px"
-        bg="gold.300"
-        rounded="full"
-        opacity={0.2}
-        style={{ animation: `${floatCircle} 8s ease-in-out infinite` }}
-      />
+      {/* Decorative floating circles with parallax */}
+      <MotionBox position="absolute" top="20%" left="10%" style={{ y: parallaxY1 }}>
+        <Box w="40px" h="40px" bg="gold.200" rounded="full" opacity={0.3} style={{ animation: `${floatCircle} 6s ease-in-out infinite` }} />
+      </MotionBox>
+      <MotionBox position="absolute" top="50%" right="15%" style={{ y: parallaxY2 }}>
+        <Box w="60px" h="60px" bg="gold.300" rounded="full" opacity={0.2} style={{ animation: `${floatCircle} 8s ease-in-out infinite` }} />
+      </MotionBox>
 
       <Container maxW="7xl" py={12}>
         {/* Hero Section */}
@@ -312,13 +332,13 @@ export default function App() {
           id="hero"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
+          transition={motionTransition}
           textAlign="center"
           py={20}
           pt={32}
         >
           <Heading fontSize={{ base: "4xl", md: "6xl" }} fontWeight="800">
-            OSSC
+            <Box as="span" color="black.500">OSSC</Box>
             <Box as="span" position="relative" display="inline-block" color="black.500">
               A
               <MotionBox
@@ -357,7 +377,7 @@ export default function App() {
             bg="gold.500"
             color="white"
             _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
-            transition="all 0.3s ease"
+            transition={`all 0.35s ${smoothEase}`}
             rounded="2xl"
             style={{
               backgroundImage: "linear-gradient(120deg, rgba(255,215,0,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,215,0,0.2) 100%)",
@@ -370,33 +390,49 @@ export default function App() {
         </MotionBox>
 
         {/* Services Section */}
-        <Box id="services" mt={16}>
-          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} justifyItems="center">
+        <MotionBox id="services" mt={16} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8} justifyItems="center">
+          <MotionBox variants={staggerItemScale}>
           <ServiceCard
             title="Web Development"
             description="Performance-first, accessible websites with modern UX."
             link="/web-development"
             icon={FaCode}
           />
+          </MotionBox>
+          <MotionBox variants={staggerItemScale}>
           <ServiceCard
             title="App Development"
             description="Cross-platform mobile & desktop apps that scale."
             link="/app-development"
             icon={FaMobile}
           />
+          </MotionBox>
+          <MotionBox variants={staggerItemScale}>
           <ServiceCard
             title="AI Solutions"
             description="Custom ML/AI systems, automation, and integrations."
             link="/ai-solutions"
             icon={FaBrain}
           />
+          </MotionBox>
+          <MotionBox variants={staggerItemScale}>
+          <ServiceCard
+            title="Shopify Store Development"
+            description="High-converting Shopify stores: setup, themes, and apps."
+            link="/shopify-development"
+            icon={FaShopify}
+          />
+          </MotionBox>
           </SimpleGrid>
-        </Box>
+        </MotionBox>
 
        {/* Pricing Section */}
+<MotionBox variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}>
 <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={16} justifyItems="center">
 
   {/* Basic Plan */}
+  <MotionBox variants={staggerItemScale}>
   <Box p={10} borderWidth={3} borderRadius="2xl" bg="rgba(255,255,255,0.7)" backdropFilter="blur(10px)" shadow="lg" textAlign="center">
     <Heading size="lg" mb={2} fontFamily="'Playfair Display', serif">Basic</Heading>
     <Text fontSize="sm" color="gray.600" mb={6}>
@@ -421,8 +457,10 @@ export default function App() {
       Learn More
     </MagneticButton>
   </Box>
+  </MotionBox>
 
   {/* Pro Plan (Most Popular) */}
+  <MotionBox variants={staggerItemScale}>
   <Box position="relative">
     <Box
       position="absolute"
@@ -453,7 +491,7 @@ export default function App() {
       shadow="2xl"
       textAlign="center"
       transform="scale(1.05)"
-      _hover={{ transform: "scale(1.08)", transition: "0.3s" }}
+      _hover={{ transform: "scale(1.08)", transition: `0.35s ${smoothEase}` }}
     >
       <Heading size="lg" mb={2} color="white" fontFamily="'Playfair Display', serif">Pro</Heading>
       <Text fontSize="sm" color="whiteAlpha.800" mb={6}>
@@ -479,8 +517,10 @@ export default function App() {
       </MagneticButton>
     </Box>
   </Box>
+  </MotionBox>
 
   {/* Enterprise Plan */}
+  <MotionBox variants={staggerItemScale}>
   <Box p={10} borderWidth={3} borderRadius="2xl" bg="rgba(255,255,255,0.7)" backdropFilter="blur(10px)" shadow="lg" textAlign="center">
     <Heading size="lg" mb={2} fontFamily="'Playfair Display', serif">Enterprise</Heading>
     <Text fontSize="sm" color="gray.600" mb={6}>
@@ -505,15 +545,17 @@ export default function App() {
       Learn More
     </MagneticButton>
   </Box>
+  </MotionBox>
 
 </SimpleGrid>
+</MotionBox>
 
         {/* Stats Section */}
         <MotionBox
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
           mt={20}
         >
           <VStack spacing={8} textAlign="center">
@@ -521,10 +563,10 @@ export default function App() {
               Trusted by Clients Worldwide
             </Heading>
             <SimpleGrid columns={{ base: 2, md: 4 }} spacing={8} w="full">
-              <StatsCard number="50+" label="Projects Completed" icon={FaRocket} />
-              <StatsCard number="25+" label="Happy Clients" icon={FaUsers} />
-              <StatsCard number="5+" label="Years Experience" icon={FaAward} />
-              <StatsCard number="100%" label="Client Satisfaction" icon={FaStar} />
+              <MotionBox variants={staggerItem}><StatsCard number="500+" label="Projects Completed" icon={FaRocket} /></MotionBox>
+              <MotionBox variants={staggerItem}><StatsCard number="500+" label="Happy Clients" icon={FaUsers} /></MotionBox>
+              <MotionBox variants={staggerItem}><StatsCard number="5+" label="Years Experience" icon={FaAward} /></MotionBox>
+              <MotionBox variants={staggerItem}><StatsCard number="100%" label="Client Satisfaction" icon={FaStar} /></MotionBox>
             </SimpleGrid>
           </VStack>
         </MotionBox>
@@ -534,7 +576,7 @@ export default function App() {
           id="about"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
           mt={20}
         >
@@ -548,29 +590,35 @@ export default function App() {
               in cutting-edge technologies, we deliver solutions that not only meet your requirements 
               but exceed your expectations.
             </Text>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={8}>
-              <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
-                <Icon as={FaCode} w={12} h={12} color="gold.500" />
-                <Heading size="md" fontFamily="'Playfair Display', serif">Innovation</Heading>
-                <Text color="gray.600" textAlign="center">
-                  We stay ahead of the curve with the latest technologies and best practices.
-                </Text>
-              </VStack>
-              <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
-                <Icon as={FaUsers} w={12} h={12} color="gold.500" />
-                <Heading size="md" fontFamily="'Playfair Display', serif">Collaboration</Heading>
-                <Text color="gray.600" textAlign="center">
-                  We work closely with our clients to ensure every project is a perfect fit.
-                </Text>
-              </VStack>
-              <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
-                <Icon as={FaAward} w={12} h={12} color="gold.500" />
-                <Heading size="md" fontFamily="'Playfair Display', serif">Excellence</Heading>
-                <Text color="gray.600" textAlign="center">
-                  Quality is at the heart of everything we do, from concept to deployment.
-                </Text>
-              </VStack>
-            </SimpleGrid>
+            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <MotionBox variants={staggerItemScale}>
+                <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
+                  <Icon as={FaCode} w={12} h={12} color="gold.500" />
+                  <Heading size="md" fontFamily="'Playfair Display', serif">Innovation</Heading>
+                  <Text color="gray.600" textAlign="center">
+                    We stay ahead of the curve with the latest technologies and best practices.
+                  </Text>
+                </VStack>
+              </MotionBox>
+              <MotionBox variants={staggerItemScale}>
+                <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
+                  <Icon as={FaUsers} w={12} h={12} color="gold.500" />
+                  <Heading size="md" fontFamily="'Playfair Display', serif">Collaboration</Heading>
+                  <Text color="gray.600" textAlign="center">
+                    We work closely with our clients to ensure every project is a perfect fit.
+                  </Text>
+                </VStack>
+              </MotionBox>
+              <MotionBox variants={staggerItemScale}>
+                <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
+                  <Icon as={FaAward} w={12} h={12} color="gold.500" />
+                  <Heading size="md" fontFamily="'Playfair Display', serif">Excellence</Heading>
+                  <Text color="gray.600" textAlign="center">
+                    Quality is at the heart of everything we do, from concept to deployment.
+                  </Text>
+                </VStack>
+              </MotionBox>
+            </MotionBox>
           </VStack>
         </MotionBox>
 
@@ -579,7 +627,7 @@ export default function App() {
           id="portfolio"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
           mt={20}
         >
@@ -591,26 +639,67 @@ export default function App() {
               Explore some of our recent projects and see how we've helped businesses 
               achieve their digital goals.
             </Text>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={8}>
+            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <MotionBox variants={staggerItemScale}>
               <PortfolioCard
                 title="E-Commerce Platform"
                 description="A modern, scalable e-commerce solution with advanced analytics and AI-powered recommendations."
                 image="🛒"
                 tags={["React", "Node.js", "AI", "E-commerce"]}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItemScale}>
               <PortfolioCard
                 title="Mobile Banking App"
                 description="Secure, user-friendly mobile banking application with biometric authentication."
                 image="🏦"
                 tags={["React Native", "Security", "Fintech", "Mobile"]}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItemScale}>
               <PortfolioCard
                 title="AI Chatbot System"
                 description="Intelligent customer service chatbot with natural language processing capabilities."
                 image="🤖"
                 tags={["AI", "NLP", "Automation", "Customer Service"]}
               />
-            </SimpleGrid>
+              </MotionBox>
+            </MotionBox>
+
+            {/* Shopify Stores We've Built */}
+            <Heading size="md" fontFamily="'Playfair Display', serif" mt={12} mb={4}>
+              Shopify Stores We've Built
+            </Heading>
+            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} w="full" maxW="5xl" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <MotionBox variants={staggerItem}>
+              <VStack align="start" spacing={3} p={6} bg="white" borderRadius="2xl" boxShadow="lg" h="full">
+                <Text fontWeight="bold" color="gray.700">👗 Clothing</Text>
+                <VStack align="start" spacing={2}>
+                  <Box as="a" href="https://www.taruni.in" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.taruni.in</Box>
+                  <Box as="a" href="https://www.malikaclothing.qa" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.malikaclothing.qa</Box>
+                  <Box as="a" href="https://www.naaribyardraknair.com" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.naaribyardraknair.com</Box>
+                  <Box as="a" href="https://www.flyhoch.com" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.flyhoch.com</Box>
+                </VStack>
+              </VStack>
+              </MotionBox>
+              <MotionBox variants={staggerItem}>
+              <VStack align="start" spacing={3} p={6} bg="white" borderRadius="2xl" boxShadow="lg" h="full">
+                <Text fontWeight="bold" color="gray.700">🍔 Food & Beverages</Text>
+                <VStack align="start" spacing={2}>
+                  <Box as="a" href="https://gocs.shop/" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">gocs.shop</Box>
+                  <Box as="a" href="https://www.domnom.in" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.domnom.in</Box>
+                </VStack>
+              </VStack>
+              </MotionBox>
+              <MotionBox variants={staggerItem}>
+              <VStack align="start" spacing={3} p={6} bg="white" borderRadius="2xl" boxShadow="lg" h="full">
+                <Text fontWeight="bold" color="gray.700">🏠 Curtains & Home Decor</Text>
+                <VStack align="start" spacing={2}>
+                  <Box as="a" href="https://www.sreeyang.com/" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.sreeyang.com</Box>
+                </VStack>
+              </VStack>
+              </MotionBox>
+            </MotionBox>
           </VStack>
         </MotionBox>
 
@@ -618,7 +707,7 @@ export default function App() {
         <MotionBox
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
           mt={20}
         >
@@ -630,32 +719,40 @@ export default function App() {
               Our proven process ensures your project is delivered on time, 
               on budget, and exceeds your expectations.
             </Text>
-            <SimpleGrid columns={{ base: 1, md: 4 }} spacing={8} mt={8}>
+            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 4 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <MotionBox variants={staggerItem}>
               <ProcessStep
                 step="1"
                 title="Discovery"
                 description="We understand your vision, goals, and requirements through detailed consultation."
                 icon={FaUsers}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItem}>
               <ProcessStep
                 step="2"
                 title="Design"
                 description="Our team creates wireframes, prototypes, and designs that bring your ideas to life."
                 icon={FaCode}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItem}>
               <ProcessStep
                 step="3"
                 title="Development"
                 description="We build your solution using cutting-edge technologies and best practices."
                 icon={FaRocket}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItem}>
               <ProcessStep
                 step="4"
                 title="Launch"
                 description="We deploy your project and provide ongoing support to ensure success."
                 icon={FaAward}
               />
-            </SimpleGrid>
+              </MotionBox>
+            </MotionBox>
           </VStack>
         </MotionBox>
 
@@ -664,7 +761,7 @@ export default function App() {
           id="testimonials"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
           mt={20}
         >
@@ -675,7 +772,8 @@ export default function App() {
             <Text fontSize="lg" color="gray.600" maxW="2xl">
               Don't just take our word for it. Here's what our satisfied clients have to say.
             </Text>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={8}>
+            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <MotionBox variants={staggerItemScale}>
               <TestimonialCard
                 name="Sarah Johnson"
                 role="CEO"
@@ -683,6 +781,8 @@ export default function App() {
                 content="OSSCA Prime transformed our digital presence completely. Their attention to detail and innovative approach exceeded all our expectations."
                 rating={5}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItemScale}>
               <TestimonialCard
                 name="Michael Chen"
                 role="Founder"
@@ -690,6 +790,8 @@ export default function App() {
                 content="The AI solution they built for us has revolutionized our customer service. Response times improved by 80% and customer satisfaction is at an all-time high."
                 rating={5}
               />
+              </MotionBox>
+              <MotionBox variants={staggerItemScale}>
               <TestimonialCard
                 name="Emily Rodriguez"
                 role="Marketing Director"
@@ -697,7 +799,8 @@ export default function App() {
                 content="Working with OSSCA Prime was a game-changer. They delivered our e-commerce platform ahead of schedule and it's been performing flawlessly."
                 rating={5}
               />
-            </SimpleGrid>
+              </MotionBox>
+            </MotionBox>
           </VStack>
         </MotionBox>
 
@@ -705,7 +808,7 @@ export default function App() {
         <MotionBox
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
           mt={20}
         >
@@ -788,7 +891,7 @@ export default function App() {
           <MotionBox
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={motionTransition}
             viewport={{ once: true }}
           >
             <VStack spacing={12}>
@@ -841,7 +944,7 @@ export default function App() {
                       rounded="xl"
                       w="full"
                       _hover={{ bg: "gold.100", transform: "translateX(5px)" }}
-                      transition="all 0.3s ease"
+                      transition={`all 0.35s ${smoothEase}`}
                     >
                       <Box
                         bg="gold.500"
@@ -870,7 +973,7 @@ export default function App() {
                       rounded="xl"
                       w="full"
                       _hover={{ bg: "green.100", transform: "translateX(5px)" }}
-                      transition="all 0.3s ease"
+                      transition={`all 0.35s ${smoothEase}`}
                     >
                       <Box
                         bg="green.500"
@@ -899,7 +1002,7 @@ export default function App() {
                       rounded="xl"
                       w="full"
                       _hover={{ bg: "blue.100", transform: "translateX(5px)" }}
-                      transition="all 0.3s ease"
+                      transition={`all 0.35s ${smoothEase}`}
                     >
                       <Box
                         bg="blue.500"
@@ -969,7 +1072,7 @@ export default function App() {
                       w="full"
                       h="60px"
                       fontSize="lg"
-                      transition="all 0.3s ease"
+                      transition={`all 0.35s ${smoothEase}`}
                       style={{
                         backgroundImage: "linear-gradient(120deg, rgba(255,215,0,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,215,0,0.2) 100%)",
                         backgroundSize: "200% auto",
@@ -1005,7 +1108,7 @@ export default function App() {
                       w="full"
                       h="60px"
                       fontSize="lg"
-                      transition="all 0.3s ease"
+                      transition={`all 0.35s ${smoothEase}`}
                     >
                       <HStack spacing={3}>
                         <FaInstagram fontSize="24px" />
@@ -1034,7 +1137,7 @@ export default function App() {
                       w="full"
                       h="60px"
                       fontSize="lg"
-                      transition="all 0.3s ease"
+                      transition={`all 0.35s ${smoothEase}`}
                     >
                       <HStack spacing={3}>
                         <FaRocket fontSize="20px" />
@@ -1115,6 +1218,9 @@ export default function App() {
           </Link>
           <Link to="/ai-solutions" style={{ fontSize: "sm", color: "#666" }}>
             AI Solutions
+          </Link>
+          <Link to="/shopify-development" style={{ fontSize: "sm", color: "#666" }}>
+            Shopify Store Development
           </Link>
         </VStack>
       </VStack>

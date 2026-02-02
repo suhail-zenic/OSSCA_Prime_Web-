@@ -62,6 +62,9 @@ const MotionBox = motion(Box);
 const MotionButton = motion(Button);
 const MotionText = motion(Text);
 
+const motionTransition = { duration: 0.5, ease: [0.4, 0, 0.2, 1] };
+const motionTransitionSlow = { duration: 0.6, ease: [0.4, 0, 0.2, 1] };
+
 // Shine effect keyframes
 const shineAnimation = keyframes`
   0% { background-position: -200% center; }
@@ -188,7 +191,7 @@ export default function AppDev() {
             maxW="3xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.3 }}
+        transition={{ ...motionTransitionSlow, delay: 0.2 }}
       >
             We build powerful mobile and desktop applications with speed, security,
             and scalability in mind. From native iOS/Android apps to cross-platform
@@ -246,7 +249,7 @@ export default function AppDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={8} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -302,7 +305,7 @@ export default function AppDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={8} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -457,7 +460,7 @@ export default function AppDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={8} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -504,7 +507,7 @@ export default function AppDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={6} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -568,7 +571,7 @@ export default function AppDev() {
           p={12}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={4} fontFamily="'Playfair Display', serif">

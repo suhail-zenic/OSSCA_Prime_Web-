@@ -62,6 +62,9 @@ const MotionBox = motion(Box);
 const MotionButton = motion(Button);
 const MotionText = motion(Text);
 
+const motionTransition = { duration: 0.5, ease: [0.4, 0, 0.2, 1] };
+const motionTransitionSlow = { duration: 0.6, ease: [0.4, 0, 0.2, 1] };
+
 // Shine effect keyframes
 const shineAnimation = keyframes`
   0% { background-position: -200% center; }
@@ -166,7 +169,7 @@ export default function WebDev() {
           <MotionBox
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
+            transition={motionTransitionSlow}
           >
             <Heading
               fontFamily="'Playfair Display', serif"
@@ -247,7 +250,7 @@ export default function WebDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={8} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -323,7 +326,7 @@ export default function WebDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={8} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -368,7 +371,7 @@ export default function WebDev() {
           mb={16}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={6} textAlign="center" fontFamily="'Playfair Display', serif">
@@ -440,7 +443,7 @@ export default function WebDev() {
           p={12}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={motionTransition}
           viewport={{ once: true }}
         >
           <Heading size="lg" mb={4} fontFamily="'Playfair Display', serif">

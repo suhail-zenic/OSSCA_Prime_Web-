@@ -14,6 +14,7 @@ import ProFeatures from "./pages/ProFeatures";
 import EnterpriseFeatures from "./pages/EnterpriseFeatures";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyAndPolicy from "./pages/PrivacyAndPolicy";
+import ShopifyDev from "./pages/ShopifyDev";
 
 const theme = extendTheme({
   colors: {
@@ -22,8 +23,32 @@ const theme = extendTheme({
     black: { 500: "#000000" }
   },
   fonts: {
-    body: "Inter, sans-serif",
-    heading: "Inter, sans-serif"
+    body: "Poppins, sans-serif",
+    heading: "Poppins, sans-serif"
+  },
+  transitionDuration: {
+    fast: "0.15s",
+    normal: "0.25s",
+    slow: "0.35s",
+    slower: "0.5s"
+  },
+  transitionProperty: {
+    common: "background-color, border-color, color, fill, stroke, opacity, box-shadow, transform"
+  },
+  styles: {
+    global: {
+      "html, body": {
+        scrollBehavior: "smooth"
+      },
+      "*": {
+        WebkitTapHighlightColor: "transparent"
+      },
+      "button:focus-visible, a:focus-visible, [role='button']:focus-visible": {
+        outline: "2px solid",
+        outlineColor: "gold.500",
+        outlineOffset: "2px"
+      }
+    }
   }
 });
 
@@ -36,6 +61,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/web-development" element={<WebDev />} />
           <Route path="/app-development" element={<AppDev />} />
           <Route path="/ai-solutions" element={<AISolutions />} />
+          <Route path="/shopify-development" element={<ShopifyDev />} />
           <Route path="/start-project" element={<StartProject />} />
           <Route path="/basic-features" element={<BasicFeatures />} />
           <Route path="/pro-features" element={<ProFeatures />} />
