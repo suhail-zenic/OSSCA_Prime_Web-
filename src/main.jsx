@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import StartProject from "./pages/StartProject";
 
 // 👇 Import the new pages
@@ -15,6 +15,14 @@ import EnterpriseFeatures from "./pages/EnterpriseFeatures";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyAndPolicy from "./pages/PrivacyAndPolicy";
 import ShopifyDev from "./pages/ShopifyDev";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 const theme = extendTheme({
   colors: {
@@ -56,6 +64,7 @@ createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/web-development" element={<WebDev />} />
