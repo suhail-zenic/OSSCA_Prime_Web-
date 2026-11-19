@@ -1,1294 +1,1639 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, Container, Heading, Text, VStack, SimpleGrid, HStack, Icon, Image, Badge, Divider, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, useColorModeValue } from "@chakra-ui/react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Box, Button, Container, Heading, Text, VStack, SimpleGrid, HStack, Icon, Flex, IconButton,
+  Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon,
+  Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, DrawerBody,
+  useDisclosure, useClipboard,
+} from "@chakra-ui/react";
+import {
+  motion, useScroll, useTransform, useInView, useReducedMotion, animate,
+  AnimatePresence, MotionConfig,
+} from "framer-motion";
 import { keyframes } from "@emotion/react";
-import { FaInstagram, FaRocket, FaUsers, FaAward, FaCode, FaMobile, FaBrain, FaStar, FaQuoteLeft, FaCheckCircle, FaArrowRight, FaGithub, FaLinkedin, FaTwitter, FaShopify } from "react-icons/fa";
-import hatImg from "./assets/fedora.png";
+import {
+  FaInstagram, FaRocket, FaUsers, FaAward, FaCode, FaMobileAlt, FaBrain, FaStar, FaQuoteLeft,
+  FaArrowRight, FaShopify, FaBars, FaShoppingCart, FaUniversity, FaRobot, FaEnvelope,
+  FaBolt, FaGlobeAmericas, FaCheck, FaCopy, FaSearch, FaPencilRuler, FaLightbulb, FaHandshake,
+} from "react-icons/fa";
 import { Link } from "react-router-dom";
+import hatImg from "./assets/fedora.png";
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+const INK = "#0B0B0C";
+const INK_2 = "#141416";
+const PAPER = "#FBF9F6";
+const GOLD = "#D4AF37";
+const GOLD_LIGHT = "#F3D98B";
+const GOLD_GRADIENT = "linear-gradient(100deg, #B8892B 0%, #F3D98B 35%, #D4AF37 60%, #FFE9A8 80%, #B8892B 100%)";
+// Deeper gold for text on light backgrounds (keeps contrast readable)
+const GOLD_GRADIENT_DEEP = "linear-gradient(100deg, #7A5A10 0%, #B8892B 35%, #8F6B14 60%, #C9A04A 80%, #7A5A10 100%)";
+const SERIF = "'Playfair Display', serif";
+const EASE = [0.16, 1, 0.3, 1];
+
+const GRAIN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 
 const MotionBox = motion(Box);
-const MotionButton = motion(Button);
 
-// Smooth easing for advanced feel (Material-style ease-out)
-const smoothEase = "cubic-bezier(0.4, 0, 0.2, 1)";
-const motionTransition = { duration: 0.5, ease: [0.4, 0, 0.2, 1] };
-
-// Floating animation for hat
-const floatAnimation = {
-  y: [0, -5, 0, -5, 0],
-  transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-};
-
-// Floating decorative circles keyframes
-const floatCircle = keyframes`
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-`;
-
-// Gradient animation keyframes for "Prime"
-const gradientAnimation = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
-
-// Stagger animation variants for advanced scroll reveals
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.05 }
-  }
-};
-const staggerItem = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
-};
-const staggerItemScale = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
-};
-
-// Shine effect keyframes
-const shineAnimation = keyframes`
-  0% { background-position: -200% center; }
+/* ------------------------------------------------------------------ */
+/* Keyframes                                                           */
+/* ------------------------------------------------------------------ */
+const shine = keyframes`
+  0% { background-position: 0% center; }
   100% { background-position: 200% center; }
 `;
+const drift1 = keyframes`
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(8%, 6%) scale(1.15); }
+`;
+const drift2 = keyframes`
+  0%, 100% { transform: translate(0, 0) scale(1.1); }
+  50% { transform: translate(-10%, -4%) scale(0.95); }
+`;
+const marquee = keyframes`
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+`;
+const pulse = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(212,175,55,0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(212,175,55,0); }
+  100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+`;
+const floatY = keyframes`
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-6px) rotate(-2deg); }
+`;
 
-// Magnetic hover effect
-const MagneticButton = ({ children, ...props }) => {
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+/* ------------------------------------------------------------------ */
+/* Motion variants                                                     */
+/* ------------------------------------------------------------------ */
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
+};
+const rise = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } },
+};
+const inViewProps = { initial: "hidden", whileInView: "visible", viewport: { once: true, margin: "-80px" } };
 
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setPos({ x: x * 0.2, y: y * 0.2 });
+/* ------------------------------------------------------------------ */
+/* Content                                                             */
+/* ------------------------------------------------------------------ */
+const NAV = [
+  { id: "services", label: "Services" },
+  { id: "work", label: "Work" },
+  { id: "process", label: "Process" },
+  { id: "pricing", label: "Pricing" },
+  { id: "contact", label: "Contact" },
+];
+
+const ROTATING = ["websites", "mobile apps", "AI systems", "Shopify stores"];
+
+const STATS = [
+  { value: "500+", label: "Projects completed" },
+  { value: "500+", label: "Happy clients" },
+  { value: "5+", label: "Years of experience" },
+  { value: "100%", label: "Client satisfaction" },
+];
+
+const SERVICES = [
+  {
+    title: "Web Development",
+    description: "Performance-first, accessible websites with modern UX that load fast and convert.",
+    link: "/web-development",
+    icon: FaCode,
+    tags: ["React", "Next.js", "SEO", "Accessibility"],
+  },
+  {
+    title: "App Development",
+    description: "Cross-platform mobile & desktop apps that scale with your users.",
+    link: "/app-development",
+    icon: FaMobileAlt,
+    tags: ["iOS", "Android", "React Native"],
+  },
+  {
+    title: "AI Solutions",
+    description: "Custom ML/AI systems, automation, and integrations that put your data to work.",
+    link: "/ai-solutions",
+    icon: FaBrain,
+    tags: ["LLMs", "Automation", "Chatbots"],
+  },
+  {
+    title: "Shopify Store Development",
+    description: "High-converting Shopify stores: setup, custom themes, and apps.",
+    link: "/shopify-development",
+    icon: FaShopify,
+    tags: ["Themes", "Apps", "Conversion"],
+  },
+];
+
+const TICKER = [
+  "Web Development", "Mobile Apps", "AI Solutions", "Shopify Stores", "UI / UX Design",
+  "Automation", "E-commerce", "Cloud", "Performance", "Brand Experiences",
+];
+
+const VALUES = [
+  { icon: FaLightbulb, title: "Innovation", text: "We stay ahead of the curve with the latest technologies and best practices." },
+  { icon: FaHandshake, title: "Collaboration", text: "We work closely with our clients to ensure every project is a perfect fit." },
+  { icon: FaAward, title: "Excellence", text: "Quality is at the heart of everything we do, from concept to deployment." },
+];
+
+const PROJECTS = [
+  {
+    title: "E-Commerce Platform",
+    description: "A modern, scalable e-commerce solution with advanced analytics and AI-powered recommendations.",
+    icon: FaShoppingCart,
+    tags: ["React", "Node.js", "AI", "E-commerce"],
+    gradient: "linear-gradient(135deg, #2A2112 0%, #6B5016 55%, #D4AF37 130%)",
+  },
+  {
+    title: "Mobile Banking App",
+    description: "Secure, user-friendly mobile banking application with biometric authentication.",
+    icon: FaUniversity,
+    tags: ["React Native", "Security", "Fintech"],
+    gradient: "linear-gradient(135deg, #10151C 0%, #1F2C3A 55%, #8C7A4B 130%)",
+  },
+  {
+    title: "AI Chatbot System",
+    description: "Intelligent customer service chatbot with natural language processing capabilities.",
+    icon: FaRobot,
+    tags: ["AI", "NLP", "Automation"],
+    gradient: "linear-gradient(135deg, #17121C 0%, #3A2440 55%, #C9A04A 130%)",
+  },
+];
+
+const STORES = [
+  { url: "https://www.taruni.in", label: "taruni.in", category: "Clothing" },
+  { url: "https://www.malikaclothing.qa", label: "malikaclothing.qa", category: "Clothing" },
+  { url: "https://www.naaribyardraknair.com", label: "naaribyardraknair.com", category: "Clothing" },
+  { url: "https://www.flyhoch.com", label: "flyhoch.com", category: "Clothing" },
+  { url: "https://gocs.shop/", label: "gocs.shop", category: "Food & Beverages" },
+  { url: "https://www.domnom.in", label: "domnom.in", category: "Food & Beverages" },
+  { url: "https://www.sreeyang.com/", label: "sreeyang.com", category: "Curtains & Home Decor" },
+];
+
+const PROCESS = [
+  { title: "Discovery", text: "We understand your vision, goals, and requirements through detailed consultation.", icon: FaSearch },
+  { title: "Design", text: "Our team creates wireframes, prototypes, and designs that bring your ideas to life.", icon: FaPencilRuler },
+  { title: "Development", text: "We build your solution using cutting-edge technologies and best practices.", icon: FaCode },
+  { title: "Launch", text: "We deploy your project and provide ongoing support to ensure success.", icon: FaRocket },
+];
+
+const PLANS = [
+  { name: "Basic", blurb: "For individuals and small projects", price: "$299", link: "/basic-features" },
+  { name: "Pro", blurb: "Best for growing startups and businesses ready to scale", price: "$999", link: "/pro-features", featured: true },
+  { name: "Enterprise", blurb: "Tailored solutions for large-scale projects", price: "$1999", link: "/enterprise-features" },
+];
+
+const TESTIMONIALS = [
+  {
+    name: "Sarah Johnson", role: "CEO", company: "TechStart Inc.",
+    content: "OSSCA Prime transformed our digital presence completely. Their attention to detail and innovative approach exceeded all our expectations.",
+  },
+  {
+    name: "Michael Chen", role: "Founder", company: "EcoSolutions",
+    content: "The AI solution they built for us has revolutionized our customer service. Response times improved by 80% and customer satisfaction is at an all-time high.",
+  },
+  {
+    name: "Emily Rodriguez", role: "Marketing Director", company: "Fashion Forward",
+    content: "Working with OSSCA Prime was a game-changer. They delivered our e-commerce platform ahead of schedule and it's been performing flawlessly.",
+  },
+];
+
+const FAQS = [
+  {
+    q: "What technologies do you specialize in?",
+    a: "We specialize in modern web technologies including React, Node.js, Python, AI/ML frameworks, mobile development with React Native, and cloud platforms like AWS and Azure.",
+  },
+  {
+    q: "How long does a typical project take?",
+    a: "Project timelines vary based on complexity. Simple websites take 2-4 weeks, while complex applications can take 3-6 months. We provide detailed timelines during the discovery phase.",
+  },
+  {
+    q: "Do you provide ongoing support after launch?",
+    a: "Yes! We offer comprehensive post-launch support including maintenance, updates, bug fixes, and feature enhancements. Support packages are tailored to your specific needs.",
+  },
+  {
+    q: "Can you work with our existing team?",
+    a: "Absolutely! We excel at collaborating with existing teams, integrating seamlessly with your workflow, and providing knowledge transfer to ensure smooth handoffs.",
+  },
+];
+
+const EMAIL = "contact.osscaprime@gmail.com";
+
+/* ------------------------------------------------------------------ */
+/* Small building blocks                                               */
+/* ------------------------------------------------------------------ */
+
+// The fedora logo, recoloured via CSS mask so it works on dark and light.
+function HatMark({ size = "28px", color = GOLD, ...props }) {
+  const mask = {
+    maskImage: `url(${hatImg})`,
+    WebkitMaskImage: `url(${hatImg})`,
+    maskSize: "contain",
+    WebkitMaskSize: "contain",
+    maskRepeat: "no-repeat",
+    WebkitMaskRepeat: "no-repeat",
+    maskPosition: "center",
+    WebkitMaskPosition: "center",
   };
+  return <Box aria-hidden w={size} h={size} bg={color} sx={mask} flexShrink={0} {...props} />;
+}
 
-  const handleMouseLeave = () => setPos({ x: 0, y: 0 });
-
+function GoldText({ children, onLight = false, ...props }) {
   return (
-    <MotionButton
+    <Box
+      as="span"
+      fontFamily={SERIF}
+      fontStyle="italic"
+      fontWeight="600"
+      bgImage={onLight ? GOLD_GRADIENT_DEEP : GOLD_GRADIENT}
+      bgClip="text"
+      color="transparent"
+      backgroundSize="200% auto"
+      animation={`${shine} 6s linear infinite`}
+      pr="0.08em"
       {...props}
-      animate={{ x: pos.x, y: pos.y }}
-      transition={{ type: "spring", stiffness: 150, damping: 15 }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
     >
       {children}
-    </MotionButton>
-  );
-};
-
-// ServiceCard component
-function ServiceCard({ title, description, link, icon }) {
-  return (
-    <Box
-      p={6}
-      borderWidth={1}
-      borderRadius="2xl"
-      bg="white"
-      boxShadow="lg"
-      textAlign="center"
-      _hover={{ transform: "translateY(-5px)", boxShadow: "xl", transition: `all 0.35s ${smoothEase}` }}
-      transition={`all 0.35s ${smoothEase}`}
-    >
-      {icon && (
-        <Icon as={icon} w={12} h={12} color="gold.500" mb={4} />
-      )}
-      <Heading size="md" mb={4} fontFamily="'Playfair Display', serif">
-        {title}
-      </Heading>
-      <Text mb={4} color="gray.600">
-        {description}
-      </Text>
-      {link && (
-        <Button
-          as={Link}
-          to={link}
-          variant="link"
-          color="gold.500"
-          fontWeight="bold"
-        >
-          Learn more →
-        </Button>
-      )}
     </Box>
   );
 }
 
-// StatsCard component
-function StatsCard({ number, label, icon }) {
+function Eyebrow({ children, dark }) {
   return (
-    <VStack spacing={2} textAlign="center">
-      <Icon as={icon} w={8} h={8} color="gold.500" />
-      <Heading size="2xl" color="gold.500" fontFamily="'Playfair Display', serif">
-        {number}
-      </Heading>
-      <Text color="gray.600" fontWeight="medium">
-        {label}
-      </Text>
-    </VStack>
-  );
-}
-
-// TestimonialCard component
-function TestimonialCard({ name, role, company, content, rating }) {
-  return (
-    <Box
-      p={6}
-      bg="white"
-      borderRadius="2xl"
-      boxShadow="lg"
-      position="relative"
-      _hover={{ transform: "translateY(-3px)", boxShadow: "xl", transition: `all 0.35s ${smoothEase}` }}
-      transition={`all 0.35s ${smoothEase}`}
-    >
-      <Icon as={FaQuoteLeft} w={6} h={6} color="gold.200" mb={4} />
-      <Text mb={4} color="gray.600" fontStyle="italic">
-        "{content}"
-      </Text>
-      <HStack spacing={1} mb={3}>
-        {[...Array(5)].map((_, i) => (
-          <Icon key={i} as={FaStar} color={i < rating ? "gold.400" : "gray.300"} />
-        ))}
-      </HStack>
-      <Text fontWeight="bold" color="black.500">
-        {name}
-      </Text>
-      <Text fontSize="sm" color="gray.500">
-        {role} at {company}
-      </Text>
-    </Box>
-  );
-}
-
-// ProcessStep component
-function ProcessStep({ step, title, description, icon }) {
-  return (
-    <VStack spacing={4} textAlign="center" position="relative">
-      <Box
-        w={16}
-        h={16}
-        bg="gold.500"
-        borderRadius="full"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color="white"
-        fontSize="xl"
-        fontWeight="bold"
-        mb={2}
+    <HStack spacing={3} justify="inherit">
+      <Box w="28px" h="1px" bg={GOLD} />
+      <Text
+        fontSize="xs"
+        fontWeight="700"
+        letterSpacing="0.28em"
+        textTransform="uppercase"
+        color={dark ? GOLD_LIGHT : "#9A7B22"}
       >
-        {step}
-      </Box>
-      <Icon as={icon} w={8} h={8} color="gold.500" />
-      <Heading size="md" fontFamily="'Playfair Display', serif">
-        {title}
-      </Heading>
-      <Text color="gray.600" maxW="300px">
-        {description}
+        {children}
       </Text>
-    </VStack>
+    </HStack>
   );
 }
 
-// PortfolioCard component
-function PortfolioCard({ title, description, image, tags, link }) {
+function SectionHeader({ eyebrow, title, accent, sub, dark, align = "center", maxW = "3xl" }) {
+  const centered = align === "center";
+  return (
+    <MotionBox variants={stagger} {...inViewProps} textAlign={align} maxW={maxW} mx={centered ? "auto" : 0}>
+      <MotionBox variants={rise} display="flex" justifyContent={centered ? "center" : "flex-start"}>
+        <Eyebrow dark={dark}>{eyebrow}</Eyebrow>
+      </MotionBox>
+      <MotionBox variants={rise}>
+        <Heading
+          as="h2"
+          mt={5}
+          fontSize={{ base: "4xl", md: "5xl", lg: "6xl" }}
+          fontWeight="800"
+          letterSpacing="-0.035em"
+          lineHeight="1.05"
+          color={dark ? "white" : INK}
+        >
+          {title} {accent && <GoldText onLight={!dark}>{accent}</GoldText>}
+        </Heading>
+      </MotionBox>
+      {sub && (
+        <MotionBox variants={rise}>
+          <Text mt={6} fontSize={{ base: "md", md: "lg" }} color={dark ? "whiteAlpha.700" : "gray.600"} maxW="2xl" mx={centered ? "auto" : 0}>
+            {sub}
+          </Text>
+        </MotionBox>
+      )}
+    </MotionBox>
+  );
+}
+
+// Card with a gold glow that follows the cursor.
+function SpotlightCard({ children, dark = true, glow = "rgba(212,175,55,0.16)", ...props }) {
+  const handleMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
   return (
     <Box
-      bg="white"
-      borderRadius="2xl"
+      position="relative"
       overflow="hidden"
-      boxShadow="lg"
-      _hover={{ transform: "translateY(-5px)", boxShadow: "xl", transition: `all 0.35s ${smoothEase}` }}
-      transition={`all 0.35s ${smoothEase}`}
+      rounded="3xl"
+      border="1px solid"
+      borderColor={dark ? "whiteAlpha.100" : "blackAlpha.100"}
+      bg={dark ? INK_2 : "white"}
+      onMouseMove={handleMove}
+      transition="transform 0.5s cubic-bezier(0.16,1,0.3,1), border-color 0.4s"
+      sx={{
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), ${glow}, transparent 45%)`,
+          opacity: 0,
+          transition: "opacity 0.4s",
+          pointerEvents: "none",
+        },
+        "&:hover::before": { opacity: 1 },
+        "&:hover": { transform: "translateY(-6px)", borderColor: "rgba(212,175,55,0.45)" },
+      }}
+      {...props}
     >
-      <Box h="200px" bg="gray.100" position="relative">
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          transform="translate(-50%, -50%)"
-          fontSize="4xl"
-          color="gold.300"
-        >
-          {image}
-        </Box>
-      </Box>
-      <Box p={6}>
-        <Heading size="md" mb={2} fontFamily="'Playfair Display', serif">
-          {title}
-        </Heading>
-        <Text mb={4} color="gray.600" fontSize="sm">
-          {description}
-        </Text>
-        <HStack spacing={2} mb={4} flexWrap="wrap">
-          {tags.map((tag, index) => (
-            <Badge key={index} colorScheme="gold" variant="subtle">
-              {tag}
-            </Badge>
-          ))}
-        </HStack>
-        {link && (
-          <Button
-            as={Link}
-            to={link}
-            size="sm"
-            variant="outline"
-            colorScheme="gold"
-            rightIcon={<FaArrowRight />}
-          >
-            View Details
-          </Button>
-        )}
-      </Box>
+      <Box position="relative" h="full">{children}</Box>
     </Box>
   );
 }
 
-export default function App() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const progressScale = useTransform(scrollYProgress, [0, 0.95], [0, 1]);
-  const parallaxY1 = useTransform(scrollYProgress, [0, 0.3], [0, 40]);
-  const parallaxY2 = useTransform(scrollYProgress, [0.2, 0.5], [0, -30]);
+// Number that counts up when scrolled into view ("500+" -> 0..500 + "+").
+function Counter({ value }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const reduce = useReducedMotion();
+  const match = /^(\d+)(.*)$/.exec(value);
+  const target = match ? parseInt(match[1], 10) : 0;
+  const suffix = match ? match[2] : value;
+  const [n, setN] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    if (!inView || !match) return;
+    if (reduce) {
+      setN(target);
+      return;
+    }
+    const controls = animate(0, target, {
+      duration: 1.8,
+      ease: EASE,
+      onUpdate: (v) => setN(Math.round(v)),
+    });
+    return () => controls.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, target, reduce]);
+
+  return (
+    <span ref={ref}>
+      {match ? n : ""}
+      {suffix}
+    </span>
+  );
+}
+
+function PrimaryButton({ children, ...props }) {
+  return (
+    <Button
+      size="lg"
+      h="56px"
+      px={8}
+      rounded="full"
+      color={INK}
+      fontWeight="700"
+      bgImage={GOLD_GRADIENT}
+      backgroundSize="200% auto"
+      boxShadow="0 10px 40px -10px rgba(212,175,55,0.65)"
+      transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
+      _hover={{ backgroundPosition: "right center", transform: "translateY(-2px)", boxShadow: "0 18px 50px -12px rgba(212,175,55,0.85)" }}
+      _active={{ transform: "translateY(0)" }}
+      rightIcon={<FaArrowRight />}
+      sx={{ "& svg": { transition: "transform 0.3s" }, "&:hover svg": { transform: "translateX(4px)" } }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function GhostButton({ children, dark = true, ...props }) {
+  return (
+    <Button
+      size="lg"
+      h="56px"
+      px={8}
+      rounded="full"
+      variant="outline"
+      fontWeight="600"
+      color={dark ? "white" : INK}
+      borderColor={dark ? "whiteAlpha.300" : "blackAlpha.300"}
+      bg="transparent"
+      _hover={{ borderColor: GOLD, color: dark ? GOLD_LIGHT : "#8A6B16", bg: dark ? "whiteAlpha.50" : "blackAlpha.50" }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Sections                                                            */
+/* ------------------------------------------------------------------ */
+
+function Nav({ onNavigate }) {
+  const [scrolled, setScrolled] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+  const go = (id) => {
+    onClose();
+    // Let the drawer start closing before scrolling (it locks body scroll while open).
+    setTimeout(() => onNavigate(id), 60);
   };
 
   return (
-    <Box bg="offwhite.500" minH="100vh" position="relative" overflow="hidden">
-      {/* Scroll progress bar */}
-      <MotionBox
-        position="fixed"
-        top={0}
-        left={0}
-        right={0}
-        h="3px"
-        bg="gold.500"
-        zIndex={1001}
-        style={{ scaleX: progressScale, transformOrigin: "0%" }}
-      />
-      {/* Navigation Bar */}
-      <MotionBox
-        position="fixed"
-        top={0}
-        left={0}
-        right={0}
-        zIndex={1000}
-        bg={isScrolled ? "rgba(255,255,255,0.95)" : "transparent"}
-        backdropFilter={isScrolled ? "blur(10px)" : "none"}
-        borderBottom={isScrolled ? "1px solid" : "none"}
-        borderColor="gray.200"
-        transition={`all 0.35s ${smoothEase}`}
+    <Box position="fixed" top={0} left={0} right={0} zIndex={1000} px={{ base: 3, md: 6 }} pt={{ base: 3, md: 4 }}>
+      <Flex
+        maxW="6xl"
+        mx="auto"
+        align="center"
+        justify="space-between"
+        px={{ base: 4, md: 6 }}
+        py={2.5}
+        rounded="full"
+        bg={scrolled ? "rgba(11,11,12,0.88)" : "rgba(11,11,12,0.25)"}
+        backdropFilter="saturate(160%) blur(16px)"
+        border="1px solid"
+        borderColor={scrolled ? "whiteAlpha.200" : "whiteAlpha.100"}
+        boxShadow={scrolled ? "0 12px 40px -12px rgba(0,0,0,0.5)" : "none"}
+        transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
       >
-        <Container maxW="7xl">
-          <HStack justify="center" py={4}>
-            <HStack spacing={8} display={{ base: "none", md: "flex" }}>
-              <Button variant="ghost" onClick={() => scrollToSection('services')}>
-                Services
-              </Button>
-              <Button variant="ghost" onClick={() => scrollToSection('about')}>
-                About
-              </Button>
-              <Button variant="ghost" onClick={() => scrollToSection('portfolio')}>
-                Portfolio
-              </Button>
-              <Button variant="ghost" onClick={() => scrollToSection('testimonials')}>
-                Testimonials
-              </Button>
-              <Button variant="ghost" onClick={() => scrollToSection('contact')}>
-                Contact
-              </Button>
-            </HStack>
-          </HStack>
-        </Container>
-      </MotionBox>
-      {/* Decorative floating circles with parallax */}
-      <MotionBox position="absolute" top="20%" left="10%" style={{ y: parallaxY1 }}>
-        <Box w="40px" h="40px" bg="gold.200" rounded="full" opacity={0.3} style={{ animation: `${floatCircle} 6s ease-in-out infinite` }} />
-      </MotionBox>
-      <MotionBox position="absolute" top="50%" right="15%" style={{ y: parallaxY2 }}>
-        <Box w="60px" h="60px" bg="gold.300" rounded="full" opacity={0.2} style={{ animation: `${floatCircle} 8s ease-in-out infinite` }} />
-      </MotionBox>
-
-      <Container maxW="7xl" py={12}>
-        {/* Hero Section */}
-        <MotionBox
-          id="hero"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={motionTransition}
-          textAlign="center"
-          py={20}
-          pt={32}
+        <HStack
+          as="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          spacing={2.5}
+          aria-label="OSSCA Prime — back to top"
         >
-          <Heading fontSize={{ base: "4xl", md: "6xl" }} fontWeight="800">
-            <Box as="span" color="black.500">OSSC</Box>
-            <Box as="span" position="relative" display="inline-block" color="black.500">
-              A
-              <MotionBox
-                as="img"
-                src={hatImg}
-                position="absolute"
-                top="-0.4em"
-                left="0"
-                w="0.8em"
-                h="0.8em"
-                animate={floatAnimation}
-              />
-            </Box>
-            <Box
-              as="span"
-              ml={4}
-              bgGradient="linear(to-r, #FFD700, #FFA500, #FFD700)"
-              bgClip="text"
-              style={{
-                backgroundSize: "200% auto",
-                animation: `${shineAnimation} 3s linear infinite`,
-              }}
-              fontFamily="'Playfair Display', serif"
-            >
-              Prime
-            </Box>
-          </Heading>
-          <Text fontSize={{ base: "xl", md: "2xl" }} mt={4} color="gray.600">
-            Your prime partner for web, app and AI solutions
+          <HatMark size="30px" />
+          <Text color="white" fontWeight="800" letterSpacing="-0.02em" fontSize="lg">
+            OSSCA <Box as="span" fontFamily={SERIF} fontStyle="italic" color={GOLD_LIGHT} fontWeight="600">Prime</Box>
           </Text>
-          <MagneticButton
+        </HStack>
+
+        <HStack as="nav" spacing={1} display={{ base: "none", md: "flex" }}>
+          {NAV.map((item) => (
+            <Button
+              key={item.id}
+              variant="ghost"
+              size="sm"
+              color="whiteAlpha.800"
+              fontWeight="500"
+              rounded="full"
+              _hover={{ color: "white", bg: "whiteAlpha.100" }}
+              onClick={() => onNavigate(item.id)}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </HStack>
+
+        <HStack spacing={2}>
+          <Button
             as={Link}
             to="/start-project"
-            size="lg"
-            mt={8}
-            bg="gold.500"
-            color="white"
-            _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "lg" }}
-            transition={`all 0.35s ${smoothEase}`}
-            rounded="2xl"
-            style={{
-              backgroundImage: "linear-gradient(120deg, rgba(255,215,0,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,215,0,0.2) 100%)",
-              backgroundSize: "200% auto",
-              animation: `${shineAnimation} 5s linear infinite`,
-            }}
+            size="sm"
+            rounded="full"
+            px={5}
+            color={INK}
+            bg={GOLD}
+            fontWeight="700"
+            _hover={{ bg: GOLD_LIGHT }}
+            display={{ base: "none", sm: "inline-flex" }}
           >
             Start a Project
-          </MagneticButton>
-        </MotionBox>
-
-        {/* Services Section */}
-        <MotionBox id="services" mt={16} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}>
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8} justifyItems="center">
-          <MotionBox variants={staggerItemScale}>
-          <ServiceCard
-            title="Web Development"
-            description="Performance-first, accessible websites with modern UX."
-            link="/web-development"
-            icon={FaCode}
+          </Button>
+          <IconButton
+            aria-label="Open menu"
+            icon={<FaBars />}
+            variant="ghost"
+            color="white"
+            rounded="full"
+            _hover={{ bg: "whiteAlpha.200" }}
+            display={{ base: "inline-flex", md: "none" }}
+            onClick={onOpen}
           />
-          </MotionBox>
-          <MotionBox variants={staggerItemScale}>
-          <ServiceCard
-            title="App Development"
-            description="Cross-platform mobile & desktop apps that scale."
-            link="/app-development"
-            icon={FaMobile}
-          />
-          </MotionBox>
-          <MotionBox variants={staggerItemScale}>
-          <ServiceCard
-            title="AI Solutions"
-            description="Custom ML/AI systems, automation, and integrations."
-            link="/ai-solutions"
-            icon={FaBrain}
-          />
-          </MotionBox>
-          <MotionBox variants={staggerItemScale}>
-          <ServiceCard
-            title="Shopify Store Development"
-            description="High-converting Shopify stores: setup, themes, and apps."
-            link="/shopify-development"
-            icon={FaShopify}
-          />
-          </MotionBox>
-          </SimpleGrid>
-        </MotionBox>
+        </HStack>
+      </Flex>
 
-       {/* Pricing Section */}
-<MotionBox variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}>
-<SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} mt={16} justifyItems="center">
-
-  {/* Basic Plan */}
-  <MotionBox variants={staggerItemScale}>
-  <Box p={10} borderWidth={3} borderRadius="2xl" bg="rgba(255,255,255,0.7)" backdropFilter="blur(10px)" shadow="lg" textAlign="center">
-    <Heading size="lg" mb={2} fontFamily="'Playfair Display', serif">Basic</Heading>
-    <Text fontSize="sm" color="gray.600" mb={6}>
-      For individuals and small projects
-    </Text>
-
-    <Text fontSize="4xl" fontWeight="bold" mb={6}>
-      Starting from $299 <Box as="span" fontSize="md" color="gray.500">/project</Box>
-    </Text>
-
-    <MagneticButton
-      as={Link}
-      to="/basic-features"
-      mt={4}
-      colorScheme="blackAlpha"
-      bg="white"
-      color="black"
-      rounded="xl"
-      shadow="md"
-      _hover={{ bg: "black", color: "white" }}
-    >
-      Learn More
-    </MagneticButton>
-  </Box>
-  </MotionBox>
-
-  {/* Pro Plan (Most Popular) */}
-  <MotionBox variants={staggerItemScale}>
-  <Box position="relative">
-    <Box
-      position="absolute"
-      top="-3"
-      left="50%"
-      transform="translateX(-50%)"
-      bg="white"
-      color="black"
-      fontWeight="bold"
-      fontSize="xs"
-      px={3}
-      py={1}
-      rounded="full"
-      shadow="lg"
-      border="1px solid"
-      borderColor="gray.200"
-      zIndex={1}
-    >
-      ⭐ Most Popular
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="xs">
+        <DrawerOverlay backdropFilter="blur(6px)" />
+        <DrawerContent bg={INK} color="white">
+          <DrawerCloseButton mt={2} />
+          <DrawerBody pt={20}>
+            <VStack align="stretch" spacing={2}>
+              {NAV.map((item, i) => (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  justifyContent="space-between"
+                  h="56px"
+                  fontSize="xl"
+                  fontWeight="700"
+                  color="white"
+                  _hover={{ bg: "whiteAlpha.100", color: GOLD_LIGHT }}
+                  onClick={() => go(item.id)}
+                  rightIcon={<Text as="span" fontSize="xs" color="whiteAlpha.500">0{i + 1}</Text>}
+                >
+                  {item.label}
+                </Button>
+              ))}
+              <PrimaryButton as={Link} to="/start-project" mt={6} onClick={onClose}>
+                Start a Project
+              </PrimaryButton>
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Box>
+  );
+}
 
+function Hero({ onNavigate }) {
+  const [wordIndex, setWordIndex] = useState(0);
+  const reduce = useReducedMotion();
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  useEffect(() => {
+    if (reduce) return;
+    const t = setInterval(() => setWordIndex((i) => (i + 1) % ROTATING.length), 2400);
+    return () => clearInterval(t);
+  }, [reduce]);
+
+  const handleMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+
+  return (
     <Box
-      p={10}
-      borderWidth={3}
-      borderRadius="2xl"
-      bgGradient="linear(to-br, #FFD700, #C5A000)"
-      backdropFilter="blur(12px)"
-      shadow="2xl"
-      textAlign="center"
-      transform="scale(1.05)"
-      _hover={{ transform: "scale(1.08)", transition: `0.35s ${smoothEase}` }}
+      ref={heroRef}
+      as="section"
+      id="hero"
+      position="relative"
+      minH="100svh"
+      bg={INK}
+      color="white"
+      overflow="hidden"
+      onMouseMove={handleMove}
+      display="flex"
+      alignItems="center"
     >
-      <Heading size="lg" mb={2} color="white" fontFamily="'Playfair Display', serif">Pro</Heading>
-      <Text fontSize="sm" color="whiteAlpha.800" mb={6}>
-        Best for growing startups and businesses ready to scale
-      </Text>
+      {/* Aurora blobs */}
+      <Box
+        position="absolute"
+        top="-20%"
+        left="-10%"
+        w="60vw"
+        h="60vw"
+        rounded="full"
+        bg="radial-gradient(circle, rgba(212,175,55,0.35), transparent 60%)"
+        filter="blur(40px)"
+        animation={`${drift1} 16s ease-in-out infinite`}
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        bottom="-30%"
+        right="-15%"
+        w="55vw"
+        h="55vw"
+        rounded="full"
+        bg="radial-gradient(circle, rgba(184,137,43,0.28), transparent 60%)"
+        filter="blur(50px)"
+        animation={`${drift2} 20s ease-in-out infinite`}
+        pointerEvents="none"
+      />
+      {/* Grid lines, faded at the edges */}
+      <Box
+        position="absolute"
+        inset={0}
+        pointerEvents="none"
+        opacity={0.5}
+        bgImage="linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)"
+        bgSize="72px 72px"
+        sx={{
+          maskImage: "radial-gradient(ellipse 70% 60% at 50% 45%, black 30%, transparent 75%)",
+          WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 45%, black 30%, transparent 75%)",
+        }}
+      />
+      {/* Cursor spotlight */}
+      <Box
+        position="absolute"
+        inset={0}
+        pointerEvents="none"
+        bg="radial-gradient(600px circle at var(--mx, 50%) var(--my, 40%), rgba(243,217,139,0.10), transparent 45%)"
+      />
+      {/* Grain */}
+      <Box position="absolute" inset={0} pointerEvents="none" opacity={0.08} bgImage={GRAIN} mixBlendMode="overlay" />
 
-      <Text fontSize="4xl" fontWeight="bold" mb={6} color="white">
-        Starting from $999 <Box as="span" fontSize="md" color="whiteAlpha.800">/project</Box>
-      </Text>
+      <Container maxW="6xl" position="relative" pt={{ base: 32, md: 36 }} pb={{ base: 16, md: 20 }}>
+        <MotionBox style={{ y: contentY, opacity: contentOpacity }}>
+          <MotionBox variants={stagger} initial="hidden" animate="visible" textAlign="center">
+            <MotionBox variants={rise} display="flex" justifyContent="center">
+              <HStack
+                spacing={3}
+                px={4}
+                py={2}
+                rounded="full"
+                bg="whiteAlpha.50"
+                border="1px solid"
+                borderColor="whiteAlpha.200"
+                backdropFilter="blur(8px)"
+              >
+                <Box w="8px" h="8px" rounded="full" bg={GOLD} animation={`${pulse} 2s infinite`} />
+                <Text fontSize="sm" color="whiteAlpha.800" fontWeight="500">
+                  Web · App · AI · Shopify — crafted end to end
+                </Text>
+              </HStack>
+            </MotionBox>
 
-      <MagneticButton
-        as={Link}
-        to="/pro-features"
-        mt={4}
-        colorScheme="blackAlpha"
-        bg="white"
-        color="black"
-        rounded="xl"
-        shadow="md"
-        _hover={{ bg: "black", color: "white" }}
-      >
-        Learn More
-      </MagneticButton>
+            <MotionBox variants={rise}>
+              <Heading
+                as="h1"
+                mt={8}
+                fontSize={{ base: "44px", sm: "56px", md: "80px", lg: "96px" }}
+                fontWeight="800"
+                letterSpacing="-0.045em"
+                lineHeight={{ base: "1.05", md: "0.98" }}
+              >
+                We build{" "}
+                <Box as="span" display="block" position="relative" h={{ base: "1.15em", md: "1.1em" }} overflow="hidden">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <MotionBox
+                      key={ROTATING[wordIndex]}
+                      as="span"
+                      display="block"
+                      initial={{ y: "100%", opacity: 0 }}
+                      animate={{ y: "0%", opacity: 1 }}
+                      exit={{ y: "-100%", opacity: 0 }}
+                      transition={{ duration: 0.6, ease: EASE }}
+                    >
+                      <GoldText>{ROTATING[wordIndex]}</GoldText>
+                    </MotionBox>
+                  </AnimatePresence>
+                </Box>
+                that feel prime.
+              </Heading>
+            </MotionBox>
+
+            <MotionBox variants={rise}>
+              <Text mt={8} fontSize={{ base: "lg", md: "xl" }} color="whiteAlpha.700" maxW="2xl" mx="auto">
+                OSSCA Prime is your prime partner for web, app and AI solutions — designed with care,
+                engineered for performance, and launched to grow your business.
+              </Text>
+            </MotionBox>
+
+            <MotionBox variants={rise}>
+              <Flex mt={10} gap={4} justify="center" direction={{ base: "column", sm: "row" }} align="center">
+                <PrimaryButton as={Link} to="/start-project" w={{ base: "full", sm: "auto" }}>
+                  Start a Project
+                </PrimaryButton>
+                <GhostButton onClick={() => onNavigate("work")} w={{ base: "full", sm: "auto" }}>
+                  See our work
+                </GhostButton>
+              </Flex>
+            </MotionBox>
+
+            <MotionBox variants={rise}>
+              <SimpleGrid
+                columns={{ base: 2, md: 4 }}
+                mt={{ base: 16, md: 24 }}
+                borderTop="1px solid"
+                borderColor="whiteAlpha.200"
+                pt={10}
+                spacingY={8}
+              >
+                {STATS.map((s) => (
+                  <VStack key={s.label} spacing={1}>
+                    <Text fontSize={{ base: "3xl", md: "5xl" }} fontWeight="800" letterSpacing="-0.04em" color="white">
+                      <Counter value={s.value} />
+                    </Text>
+                    <Text fontSize="sm" color="whiteAlpha.600">
+                      {s.label}
+                    </Text>
+                  </VStack>
+                ))}
+              </SimpleGrid>
+            </MotionBox>
+          </MotionBox>
+        </MotionBox>
+      </Container>
     </Box>
-  </Box>
-  </MotionBox>
+  );
+}
 
-  {/* Enterprise Plan */}
-  <MotionBox variants={staggerItemScale}>
-  <Box p={10} borderWidth={3} borderRadius="2xl" bg="rgba(255,255,255,0.7)" backdropFilter="blur(10px)" shadow="lg" textAlign="center">
-    <Heading size="lg" mb={2} fontFamily="'Playfair Display', serif">Enterprise</Heading>
-    <Text fontSize="sm" color="gray.600" mb={6}>
-      Tailored solutions for large-scale projects
-    </Text>
-
-    <Text fontSize="4xl" fontWeight="bold" mb={6}>
-      Starting from $1999 <Box as="span" fontSize="md" color="gray.500">/project</Box>
-    </Text>
-
-    <MagneticButton
-      as={Link}
-      to="/enterprise-features"
-      mt={4}
-      colorScheme="blackAlpha"
-      bg="white"
-      color="black"
-      rounded="xl"
-      shadow="md"
-      _hover={{ bg: "black", color: "white" }}
+function Ticker() {
+  const items = [...TICKER, ...TICKER];
+  return (
+    <Box
+      bgImage={GOLD_GRADIENT}
+      color={INK}
+      py={4}
+      overflow="hidden"
+      transform="rotate(-1.5deg)"
+      mt="-12px"
+      mx="-2%"
+      position="relative"
+      zIndex={2}
+      boxShadow="0 20px 40px -20px rgba(0,0,0,0.5)"
     >
-      Learn More
-    </MagneticButton>
-  </Box>
-  </MotionBox>
+      <Flex w="max-content" animation={`${marquee} 40s linear infinite`}>
+        {items.map((t, i) => (
+          <HStack key={i} spacing={8} px={4} flexShrink={0}>
+            <Text fontSize={{ base: "lg", md: "2xl" }} fontWeight="800" letterSpacing="-0.02em" whiteSpace="nowrap">
+              {t}
+            </Text>
+            <HatMark size="22px" color={INK} />
+          </HStack>
+        ))}
+      </Flex>
+    </Box>
+  );
+}
 
-</SimpleGrid>
-</MotionBox>
+function Services() {
+  return (
+    <Box as="section" id="services" bg={PAPER} pt={{ base: 24, md: 36 }} pb={{ base: 20, md: 28 }}>
+      <Container maxW="6xl">
+        <Flex direction={{ base: "column", lg: "row" }} justify="space-between" align={{ lg: "flex-end" }} gap={8}>
+          <SectionHeader
+            align="left"
+            eyebrow="What we do"
+            title="Four crafts."
+            accent="One standard."
+            maxW="2xl"
+          />
+          <Text color="gray.600" maxW="sm" fontSize="lg">
+            From the first wireframe to the final deploy, every product we ship is held to the same prime bar.
+          </Text>
+        </Flex>
 
-        {/* Stats Section */}
-        <MotionBox
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          mt={20}
+        <MotionBox as={SimpleGrid} columns={{ base: 1, md: 2 }} spacing={6} mt={16} variants={stagger} {...inViewProps}>
+          {SERVICES.map((s, i) => (
+            <MotionBox key={s.title} variants={rise} h="full">
+              <SpotlightCard as={Link} to={s.link} display="block" h="full" p={{ base: 8, md: 10 }} role="group">
+                <Flex justify="space-between" align="flex-start">
+                  <Flex
+                    w="64px"
+                    h="64px"
+                    rounded="2xl"
+                    align="center"
+                    justify="center"
+                    bg="rgba(212,175,55,0.1)"
+                    border="1px solid"
+                    borderColor="rgba(212,175,55,0.3)"
+                    transition="all 0.4s"
+                    _groupHover={{ bg: GOLD, borderColor: GOLD }}
+                  >
+                    <Icon as={s.icon} boxSize={7} color={GOLD} transition="color 0.4s" _groupHover={{ color: INK }} />
+                  </Flex>
+                  <Text fontFamily={SERIF} fontStyle="italic" fontSize="5xl" lineHeight="1" color="whiteAlpha.200">
+                    0{i + 1}
+                  </Text>
+                </Flex>
+                <Heading as="h3" mt={10} fontSize={{ base: "2xl", md: "3xl" }} fontWeight="800" letterSpacing="-0.03em" color="white">
+                  {s.title}
+                </Heading>
+                <Text mt={3} color="whiteAlpha.700" fontSize="md">
+                  {s.description}
+                </Text>
+                <Flex mt={8} justify="space-between" align="center" gap={4}>
+                  <HStack spacing={2} flexWrap="wrap">
+                    {s.tags.map((t) => (
+                      <Box key={t} px={3} py={1} rounded="full" border="1px solid" borderColor="whiteAlpha.200" fontSize="xs" color="whiteAlpha.700">
+                        {t}
+                      </Box>
+                    ))}
+                  </HStack>
+                  <Flex
+                    flexShrink={0}
+                    w="44px"
+                    h="44px"
+                    rounded="full"
+                    align="center"
+                    justify="center"
+                    border="1px solid"
+                    borderColor="whiteAlpha.300"
+                    color="white"
+                    transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
+                    _groupHover={{ bg: GOLD, borderColor: GOLD, color: INK, transform: "rotate(-45deg)" }}
+                  >
+                    <FaArrowRight />
+                  </Flex>
+                </Flex>
+              </SpotlightCard>
+            </MotionBox>
+          ))}
+        </MotionBox>
+      </Container>
+    </Box>
+  );
+}
+
+function About() {
+  return (
+    <Box as="section" id="about" bg={PAPER} pb={{ base: 20, md: 32 }}>
+      <Container maxW="6xl">
+        <Box
+          rounded="3xl"
+          bg="white"
+          border="1px solid"
+          borderColor="blackAlpha.100"
+          p={{ base: 8, md: 14 }}
+          position="relative"
+          overflow="hidden"
         >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="lg" fontFamily="'Playfair Display', serif">
-              Trusted by Clients Worldwide
+          <HatMark size="320px" color="rgba(212,175,55,0.07)" position="absolute" right="-60px" top="-90px" />
+          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 12, lg: 16 }} position="relative">
+            <MotionBox variants={stagger} {...inViewProps}>
+              <MotionBox variants={rise}>
+                <Eyebrow>About OSSCA Prime</Eyebrow>
+              </MotionBox>
+              <MotionBox variants={rise}>
+                <Heading
+                  as="h2"
+                  mt={5}
+                  fontSize={{ base: "3xl", md: "5xl" }}
+                  fontWeight="800"
+                  letterSpacing="-0.035em"
+                  lineHeight="1.1"
+                  color={INK}
+                >
+                  Ideas in. <GoldText onLight>Exceptional</GoldText> digital experiences out.
+                </Heading>
+              </MotionBox>
+              <MotionBox variants={rise}>
+                <Text mt={6} fontSize="lg" color="gray.600">
+                  We are a passionate team of developers, designers, and AI specialists dedicated to
+                  transforming your ideas into exceptional digital experiences. With years of expertise
+                  in cutting-edge technologies, we deliver solutions that not only meet your requirements
+                  but exceed your expectations.
+                </Text>
+              </MotionBox>
+            </MotionBox>
+
+            <MotionBox as={VStack} spacing={4} align="stretch" variants={stagger} {...inViewProps}>
+              {VALUES.map((v) => (
+                <MotionBox key={v.title} variants={rise}>
+                  <HStack
+                    align="flex-start"
+                    spacing={5}
+                    p={6}
+                    rounded="2xl"
+                    bg={PAPER}
+                    border="1px solid"
+                    borderColor="blackAlpha.50"
+                    transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
+                    _hover={{ transform: "translateX(6px)", borderColor: "rgba(212,175,55,0.5)", bg: "white", boxShadow: "0 20px 40px -20px rgba(0,0,0,0.15)" }}
+                  >
+                    <Flex w="48px" h="48px" rounded="xl" bg={INK} align="center" justify="center" flexShrink={0}>
+                      <Icon as={v.icon} color={GOLD} boxSize={5} />
+                    </Flex>
+                    <Box>
+                      <Heading as="h3" size="md" color={INK} letterSpacing="-0.02em">{v.title}</Heading>
+                      <Text mt={1} color="gray.600">{v.text}</Text>
+                    </Box>
+                  </HStack>
+                </MotionBox>
+              ))}
+            </MotionBox>
+          </SimpleGrid>
+        </Box>
+      </Container>
+    </Box>
+  );
+}
+
+function Work() {
+  return (
+    <Box as="section" id="work" bg={INK} color="white" py={{ base: 24, md: 36 }} position="relative" overflow="hidden">
+      <Box position="absolute" inset={0} pointerEvents="none" opacity={0.06} bgImage={GRAIN} mixBlendMode="overlay" />
+      <Container maxW="6xl" position="relative">
+        <SectionHeader
+          dark
+          eyebrow="Selected work"
+          title="Built to perform."
+          accent="Made to stand out."
+          sub="Explore some of our recent projects and see how we've helped businesses achieve their digital goals."
+        />
+
+        <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={6} mt={16} variants={stagger} {...inViewProps}>
+          {PROJECTS.map((p) => (
+            <MotionBox key={p.title} variants={rise}>
+              <SpotlightCard h="full" role="group">
+                <Box h="220px" position="relative" overflow="hidden" bgImage={p.gradient}>
+                  <Box
+                    position="absolute"
+                    inset={0}
+                    bgImage="linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)"
+                    bgSize="28px 28px"
+                  />
+                  <Flex position="absolute" inset={0} align="center" justify="center">
+                    <Flex
+                      w="96px"
+                      h="96px"
+                      rounded="3xl"
+                      align="center"
+                      justify="center"
+                      bg="rgba(11,11,12,0.45)"
+                      border="1px solid"
+                      borderColor="whiteAlpha.300"
+                      backdropFilter="blur(10px)"
+                      transition="transform 0.6s cubic-bezier(0.16,1,0.3,1)"
+                      _groupHover={{ transform: "scale(1.12) rotate(-6deg)" }}
+                    >
+                      <Icon as={p.icon} boxSize={10} color={GOLD_LIGHT} />
+                    </Flex>
+                  </Flex>
+                </Box>
+                <Box p={7}>
+                  <Heading as="h3" fontSize="xl" fontWeight="800" letterSpacing="-0.02em">{p.title}</Heading>
+                  <Text mt={2} color="whiteAlpha.700" fontSize="sm">{p.description}</Text>
+                  <HStack spacing={2} mt={5} flexWrap="wrap" rowGap={2}>
+                    {p.tags.map((t) => (
+                      <Box key={t} px={3} py={1} rounded="full" bg="rgba(212,175,55,0.12)" color={GOLD_LIGHT} fontSize="xs" fontWeight="600">
+                        {t}
+                      </Box>
+                    ))}
+                  </HStack>
+                </Box>
+              </SpotlightCard>
+            </MotionBox>
+          ))}
+        </MotionBox>
+
+        {/* Live Shopify stores */}
+        <Box mt={{ base: 20, md: 28 }}>
+          <Flex justify="space-between" align={{ base: "flex-start", md: "flex-end" }} direction={{ base: "column", md: "row" }} gap={4} mb={8}>
+            <Box>
+              <HStack spacing={3}>
+                <Icon as={FaShopify} color={GOLD} boxSize={6} />
+                <Heading as="h3" fontSize={{ base: "2xl", md: "4xl" }} fontWeight="800" letterSpacing="-0.03em">
+                  Shopify stores we've built
+                </Heading>
+              </HStack>
+              <Text mt={2} color="whiteAlpha.600">Live and selling — click through to visit any store.</Text>
+            </Box>
+            <Button as={Link} to="/shopify-development" variant="link" color={GOLD_LIGHT} rightIcon={<FaArrowRight />}>
+              Shopify services
+            </Button>
+          </Flex>
+
+          <MotionBox variants={stagger} {...inViewProps} borderTop="1px solid" borderColor="whiteAlpha.200">
+            {STORES.map((s, i) => (
+              <MotionBox key={s.url} variants={rise}>
+                <Flex
+                  as="a"
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  role="group"
+                  align="center"
+                  justify="space-between"
+                  py={{ base: 5, md: 6 }}
+                  px={{ base: 1, md: 4 }}
+                  borderBottom="1px solid"
+                  borderColor="whiteAlpha.200"
+                  position="relative"
+                  transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
+                  _hover={{ px: { base: 3, md: 8 }, bg: "whiteAlpha.50" }}
+                >
+                  <HStack spacing={{ base: 4, md: 8 }} minW={0}>
+                    <Text fontFamily={SERIF} fontStyle="italic" color="whiteAlpha.400" fontSize="lg" w="32px" flexShrink={0}>
+                      0{i + 1}
+                    </Text>
+                    <Text
+                      fontSize={{ base: "lg", md: "3xl" }}
+                      fontWeight="700"
+                      letterSpacing="-0.02em"
+                      noOfLines={1}
+                      transition="color 0.3s"
+                      _groupHover={{ color: GOLD_LIGHT }}
+                    >
+                      {s.label}
+                    </Text>
+                  </HStack>
+                  <HStack spacing={{ base: 3, md: 6 }} flexShrink={0}>
+                    <Text fontSize="sm" color="whiteAlpha.600" display={{ base: "none", sm: "block" }}>
+                      {s.category}
+                    </Text>
+                    <Flex
+                      w="40px"
+                      h="40px"
+                      rounded="full"
+                      align="center"
+                      justify="center"
+                      border="1px solid"
+                      borderColor="whiteAlpha.300"
+                      transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
+                      transform="rotate(-45deg)"
+                      _groupHover={{ bg: GOLD, borderColor: GOLD, color: INK, transform: "rotate(0deg)" }}
+                    >
+                      <FaArrowRight />
+                    </Flex>
+                  </HStack>
+                </Flex>
+              </MotionBox>
+            ))}
+          </MotionBox>
+        </Box>
+      </Container>
+    </Box>
+  );
+}
+
+function Process() {
+  const lineRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: lineRef, offset: ["start 85%", "end 55%"] });
+  const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
+  return (
+    <Box as="section" id="process" bg={PAPER} py={{ base: 24, md: 36 }}>
+      <Container maxW="6xl">
+        <SectionHeader
+          eyebrow="How we work"
+          title="A proven path from"
+          accent="idea to launch."
+          sub="Our proven process ensures your project is delivered on time, on budget, and exceeds your expectations."
+        />
+
+        <Box ref={lineRef} position="relative" mt={20}>
+          {/* Connecting line (desktop) */}
+          <Box position="absolute" top="32px" left="12.5%" right="12.5%" h="2px" bg="blackAlpha.100" display={{ base: "none", md: "block" }}>
+            <MotionBox h="full" bgImage={GOLD_GRADIENT} style={{ scaleX, transformOrigin: "0% 50%" }} />
+          </Box>
+
+          <MotionBox as={SimpleGrid} columns={{ base: 1, md: 4 }} spacing={{ base: 10, md: 6 }} variants={stagger} {...inViewProps}>
+            {PROCESS.map((step, i) => (
+              <MotionBox key={step.title} variants={rise}>
+                <VStack spacing={5} textAlign="center" role="group">
+                  <Flex
+                    position="relative"
+                    w="64px"
+                    h="64px"
+                    rounded="full"
+                    bg={INK}
+                    align="center"
+                    justify="center"
+                    border="4px solid"
+                    borderColor={PAPER}
+                    boxShadow={`0 0 0 1px ${GOLD}`}
+                    transition="all 0.4s cubic-bezier(0.16,1,0.3,1)"
+                    _groupHover={{ transform: "scale(1.1)", bg: GOLD }}
+                  >
+                    <Icon as={step.icon} color={GOLD} boxSize={5} transition="color 0.3s" _groupHover={{ color: INK }} />
+                  </Flex>
+                  <Text fontSize="xs" fontWeight="700" letterSpacing="0.25em" color="#9A7B22">
+                    STEP 0{i + 1}
+                  </Text>
+                  <Heading as="h3" fontSize="2xl" fontWeight="800" letterSpacing="-0.03em" color={INK}>
+                    {step.title}
+                  </Heading>
+                  <Text color="gray.600" maxW="260px">
+                    {step.text}
+                  </Text>
+                </VStack>
+              </MotionBox>
+            ))}
+          </MotionBox>
+        </Box>
+      </Container>
+    </Box>
+  );
+}
+
+function Pricing() {
+  return (
+    <Box as="section" id="pricing" bg={PAPER} pb={{ base: 24, md: 36 }}>
+      <Container maxW="6xl">
+        <SectionHeader
+          eyebrow="Pricing"
+          title="Transparent plans,"
+          accent="premium results."
+          sub="Every project is tailored — these starting points help you pick the right fit."
+        />
+
+        <MotionBox
+          as={SimpleGrid}
+          columns={{ base: 1, md: 3 }}
+          spacing={6}
+          mt={16}
+          alignItems="stretch"
+          variants={stagger}
+          {...inViewProps}
+        >
+          {PLANS.map((plan) => {
+            const featured = !!plan.featured;
+            return (
+              <MotionBox key={plan.name} variants={rise} h="full">
+                <Box
+                  position="relative"
+                  h="full"
+                  rounded="3xl"
+                  p="1px"
+                  bgImage={featured ? GOLD_GRADIENT : "none"}
+                  bg={featured ? undefined : "blackAlpha.100"}
+                  transform={{ md: featured ? "translateY(-16px)" : "none" }}
+                  boxShadow={featured ? "0 40px 80px -30px rgba(212,175,55,0.55)" : "none"}
+                  transition="all 0.5s cubic-bezier(0.16,1,0.3,1)"
+                  _hover={{ transform: { base: "translateY(-6px)", md: featured ? "translateY(-24px)" : "translateY(-6px)" } }}
+                >
+                  <Flex
+                    direction="column"
+                    h="full"
+                    rounded="calc(1.5rem - 1px)"
+                    bg={featured ? INK : "white"}
+                    color={featured ? "white" : INK}
+                    p={{ base: 8, md: 10 }}
+                    position="relative"
+                    overflow="hidden"
+                  >
+                    {featured && (
+                      <>
+                        <Box position="absolute" top="-40%" right="-30%" w="80%" h="80%" rounded="full" bg="radial-gradient(circle, rgba(212,175,55,0.3), transparent 65%)" filter="blur(20px)" />
+                        <HStack
+                          position="absolute"
+                          top={6}
+                          right={6}
+                          spacing={1.5}
+                          px={3}
+                          py={1}
+                          rounded="full"
+                          bg={GOLD}
+                          color={INK}
+                          fontSize="xs"
+                          fontWeight="800"
+                        >
+                          <FaStar />
+                          <Text>Most Popular</Text>
+                        </HStack>
+                      </>
+                    )}
+                    <Box position="relative">
+                      <Text fontFamily={SERIF} fontStyle="italic" fontSize="3xl" fontWeight="600" color={featured ? GOLD_LIGHT : INK}>
+                        {plan.name}
+                      </Text>
+                      <Text mt={2} fontSize="sm" color={featured ? "whiteAlpha.700" : "gray.600"} minH="40px">
+                        {plan.blurb}
+                      </Text>
+                      <Text mt={8} fontSize="xs" fontWeight="700" letterSpacing="0.2em" color={featured ? "whiteAlpha.600" : "gray.500"}>
+                        STARTING FROM
+                      </Text>
+                      <HStack align="baseline" spacing={2} mt={1}>
+                        <Text fontSize="6xl" fontWeight="800" letterSpacing="-0.05em" lineHeight="1">
+                          {plan.price}
+                        </Text>
+                        <Text color={featured ? "whiteAlpha.600" : "gray.500"}>/project</Text>
+                      </HStack>
+                    </Box>
+                    <Box flex="1" />
+                    {featured ? (
+                      <PrimaryButton as={Link} to={plan.link} mt={10} w="full" position="relative">
+                        See what's included
+                      </PrimaryButton>
+                    ) : (
+                      <Button
+                        as={Link}
+                        to={plan.link}
+                        mt={10}
+                        w="full"
+                        h="56px"
+                        rounded="full"
+                        bg={INK}
+                        color="white"
+                        fontWeight="700"
+                        rightIcon={<FaArrowRight />}
+                        _hover={{ bg: "#2A2A2E", transform: "translateY(-2px)" }}
+                      >
+                        See what's included
+                      </Button>
+                    )}
+                  </Flex>
+                </Box>
+              </MotionBox>
+            );
+          })}
+        </MotionBox>
+      </Container>
+    </Box>
+  );
+}
+
+function Testimonials() {
+  return (
+    <Box as="section" id="testimonials" bg={INK} color="white" py={{ base: 24, md: 36 }} position="relative" overflow="hidden">
+      <Box
+        position="absolute"
+        top="10%"
+        left="50%"
+        transform="translateX(-50%)"
+        w="70vw"
+        h="50vw"
+        rounded="full"
+        bg="radial-gradient(circle, rgba(212,175,55,0.14), transparent 60%)"
+        filter="blur(40px)"
+        pointerEvents="none"
+      />
+      <Container maxW="6xl" position="relative">
+        <SectionHeader
+          dark
+          eyebrow="Testimonials"
+          title="Words from the people"
+          accent="we build for."
+          sub="Don't just take our word for it. Here's what our satisfied clients have to say."
+        />
+
+        <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={6} mt={16} variants={stagger} {...inViewProps}>
+          {TESTIMONIALS.map((t) => (
+            <MotionBox key={t.name} variants={rise} h="full">
+              <SpotlightCard h="full" p={8}>
+                <Flex direction="column" h="full">
+                  <Icon as={FaQuoteLeft} boxSize={8} color={GOLD} opacity={0.8} />
+                  <Text mt={6} fontSize="lg" color="whiteAlpha.900" lineHeight="1.7" flex="1">
+                    {t.content}
+                  </Text>
+                  <HStack spacing={1} mt={8} color={GOLD}>
+                    {[0, 1, 2, 3, 4].map((i) => <FaStar key={i} />)}
+                  </HStack>
+                  <HStack mt={5} spacing={4}>
+                    <Flex
+                      w="48px"
+                      h="48px"
+                      rounded="full"
+                      bgImage={GOLD_GRADIENT}
+                      align="center"
+                      justify="center"
+                      color={INK}
+                      fontWeight="800"
+                    >
+                      {t.name.split(" ").map((p) => p[0]).join("")}
+                    </Flex>
+                    <Box>
+                      <Text fontWeight="700">{t.name}</Text>
+                      <Text fontSize="sm" color="whiteAlpha.600">{t.role}, {t.company}</Text>
+                    </Box>
+                  </HStack>
+                </Flex>
+              </SpotlightCard>
+            </MotionBox>
+          ))}
+        </MotionBox>
+      </Container>
+    </Box>
+  );
+}
+
+function FAQ() {
+  return (
+    <Box as="section" id="faq" bg={PAPER} py={{ base: 24, md: 36 }}>
+      <Container maxW="6xl">
+        <SimpleGrid columns={{ base: 1, lg: 5 }} spacing={{ base: 12, lg: 16 }}>
+          <Box gridColumn={{ lg: "span 2" }}>
+            <SectionHeader align="left" eyebrow="FAQ" title="Questions," accent="answered." />
+            <Text mt={6} color="gray.600" fontSize="lg">
+              Can't find what you're looking for?{" "}
+              <Box as="a" href={`mailto:${EMAIL}`} color="#8A6B16" fontWeight="600" textDecoration="underline" textUnderlineOffset="4px">
+                Email us
+              </Box>{" "}
+              — we reply within 24 hours.
+            </Text>
+          </Box>
+          <Box gridColumn={{ lg: "span 3" }}>
+            <Accordion allowToggle defaultIndex={[0]}>
+              {FAQS.map((f) => (
+                <AccordionItem key={f.q} border="none" mb={3}>
+                  {({ isExpanded }) => (
+                    <Box
+                      rounded="2xl"
+                      bg={isExpanded ? INK : "white"}
+                      color={isExpanded ? "white" : INK}
+                      border="1px solid"
+                      borderColor={isExpanded ? INK : "blackAlpha.100"}
+                      transition="all 0.35s cubic-bezier(0.16,1,0.3,1)"
+                      overflow="hidden"
+                    >
+                      <h3>
+                        <AccordionButton px={6} py={5} _hover={{ bg: "transparent" }}>
+                          <Box as="span" flex="1" textAlign="left" fontWeight="700" fontSize={{ base: "md", md: "lg" }}>
+                            {f.q}
+                          </Box>
+                          <Flex
+                            w="32px"
+                            h="32px"
+                            rounded="full"
+                            align="center"
+                            justify="center"
+                            bg={isExpanded ? GOLD : "blackAlpha.50"}
+                            color={INK}
+                            ml={4}
+                          >
+                            <AccordionIcon />
+                          </Flex>
+                        </AccordionButton>
+                      </h3>
+                      <AccordionPanel px={6} pb={6} pt={0} color="whiteAlpha.800">
+                        {f.a}
+                      </AccordionPanel>
+                    </Box>
+                  )}
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </Box>
+        </SimpleGrid>
+      </Container>
+    </Box>
+  );
+}
+
+function Contact() {
+  const { hasCopied, onCopy } = useClipboard(EMAIL);
+
+  return (
+    <Box as="section" id="contact" bg={PAPER} pb={{ base: 20, md: 28 }}>
+      <Container maxW="6xl">
+        <MotionBox
+          initial={{ opacity: 0, y: 40, scale: 0.98 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.9, ease: EASE }}
+          position="relative"
+          rounded={{ base: "3xl", md: "40px" }}
+          bg={INK}
+          color="white"
+          overflow="hidden"
+          px={{ base: 6, md: 16 }}
+          py={{ base: 14, md: 20 }}
+        >
+          <Box position="absolute" bottom="-50%" left="50%" transform="translateX(-50%)" w="120%" h="100%" rounded="full" bg="radial-gradient(ellipse, rgba(212,175,55,0.35), transparent 60%)" filter="blur(30px)" pointerEvents="none" />
+          <Box position="absolute" inset={0} pointerEvents="none" opacity={0.08} bgImage={GRAIN} mixBlendMode="overlay" />
+          <HatMark
+            size={{ base: "140px", md: "220px" }}
+            color="rgba(212,175,55,0.12)"
+            position="absolute"
+            top={{ base: "-30px", md: "-40px" }}
+            right={{ base: "-30px", md: "40px" }}
+            animation={`${floatY} 6s ease-in-out infinite`}
+          />
+
+          <VStack spacing={8} position="relative" textAlign="center">
+            <Eyebrow dark>Get in touch</Eyebrow>
+            <Heading as="h2" fontSize={{ base: "4xl", md: "7xl" }} fontWeight="800" letterSpacing="-0.045em" lineHeight="1">
+              Let's build something <GoldText>prime.</GoldText>
             </Heading>
-            <SimpleGrid columns={{ base: 2, md: 4 }} spacing={8} w="full">
-              <MotionBox variants={staggerItem}><StatsCard number="500+" label="Projects Completed" icon={FaRocket} /></MotionBox>
-              <MotionBox variants={staggerItem}><StatsCard number="500+" label="Happy Clients" icon={FaUsers} /></MotionBox>
-              <MotionBox variants={staggerItem}><StatsCard number="5+" label="Years Experience" icon={FaAward} /></MotionBox>
-              <MotionBox variants={staggerItem}><StatsCard number="100%" label="Client Satisfaction" icon={FaStar} /></MotionBox>
+            <Text fontSize={{ base: "lg", md: "xl" }} color="whiteAlpha.700" maxW="2xl">
+              Have a project in mind? We're here to turn your vision into reality. Let's start a conversation!
+            </Text>
+
+            <Flex gap={4} direction={{ base: "column", sm: "row" }} w={{ base: "full", sm: "auto" }}>
+              <PrimaryButton as={Link} to="/start-project">
+                Start Your Project
+              </PrimaryButton>
+              <GhostButton as="a" href={`mailto:${EMAIL}`} leftIcon={<FaEnvelope />}>
+                Send an Email
+              </GhostButton>
+            </Flex>
+
+            <HStack
+              spacing={0}
+              rounded="full"
+              border="1px solid"
+              borderColor="whiteAlpha.200"
+              bg="whiteAlpha.50"
+              pl={5}
+              pr={1.5}
+              py={1.5}
+              maxW="full"
+            >
+              <Text fontSize={{ base: "sm", md: "md" }} color="whiteAlpha.800" noOfLines={1} mr={3}>
+                {EMAIL}
+              </Text>
+              <Button
+                size="sm"
+                rounded="full"
+                onClick={onCopy}
+                leftIcon={hasCopied ? <FaCheck /> : <FaCopy />}
+                bg={hasCopied ? GOLD : "whiteAlpha.200"}
+                color={hasCopied ? INK : "white"}
+                _hover={{ bg: hasCopied ? GOLD : "whiteAlpha.300" }}
+                flexShrink={0}
+              >
+                {hasCopied ? "Copied" : "Copy"}
+              </Button>
+            </HStack>
+
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} w="full" maxW="4xl" pt={6}>
+              {[
+                { icon: FaBolt, label: "Response time", value: "Within 24 hours" },
+                { icon: FaGlobeAmericas, label: "Availability", value: "Worldwide service, 24/7" },
+                { icon: FaInstagram, label: "Instagram", value: "@ossca_prime", href: "https://www.instagram.com/ossca_prime" },
+              ].map((c) => (
+                <HStack
+                  key={c.label}
+                  as={c.href ? "a" : "div"}
+                  href={c.href}
+                  target={c.href ? "_blank" : undefined}
+                  rel={c.href ? "noopener noreferrer" : undefined}
+                  spacing={4}
+                  p={4}
+                  rounded="2xl"
+                  bg="whiteAlpha.50"
+                  border="1px solid"
+                  borderColor="whiteAlpha.100"
+                  textAlign="left"
+                  transition="all 0.3s"
+                  _hover={c.href ? { borderColor: GOLD, bg: "whiteAlpha.100" } : undefined}
+                >
+                  <Flex w="44px" h="44px" rounded="xl" bg="rgba(212,175,55,0.15)" align="center" justify="center" flexShrink={0}>
+                    <Icon as={c.icon} color={GOLD} boxSize={5} />
+                  </Flex>
+                  <Box>
+                    <Text fontSize="xs" fontWeight="700" letterSpacing="0.15em" color="whiteAlpha.500" textTransform="uppercase">
+                      {c.label}
+                    </Text>
+                    <Text fontWeight="600">{c.value}</Text>
+                  </Box>
+                </HStack>
+              ))}
             </SimpleGrid>
           </VStack>
         </MotionBox>
+      </Container>
+    </Box>
+  );
+}
 
-        {/* About Section */}
-        <MotionBox
-          id="about"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={motionTransition}
-          viewport={{ once: true }}
-          mt={20}
-        >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="lg" fontFamily="'Playfair Display', serif">
-              About OSSCA Prime
-            </Heading>
-            <Text fontSize="lg" color="gray.600" maxW="4xl">
-              We are a passionate team of developers, designers, and AI specialists dedicated to 
-              transforming your ideas into exceptional digital experiences. With years of expertise 
-              in cutting-edge technologies, we deliver solutions that not only meet your requirements 
-              but exceed your expectations.
+function Footer({ onNavigate }) {
+  const linkStyle = {
+    color: "whiteAlpha.700",
+    fontSize: "sm",
+    _hover: { color: GOLD_LIGHT },
+    transition: "color 0.2s",
+  };
+  return (
+    <Box as="footer" bg={INK} color="white" pt={{ base: 16, md: 24 }} overflow="hidden" position="relative">
+      <Container maxW="6xl">
+        <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={10}>
+          <VStack align="start" spacing={4}>
+            <HStack spacing={2.5}>
+              <HatMark size="30px" />
+              <Text fontWeight="800" fontSize="lg" letterSpacing="-0.02em">
+                OSSCA <Box as="span" fontFamily={SERIF} fontStyle="italic" color={GOLD_LIGHT} fontWeight="600">Prime</Box>
+              </Text>
+            </HStack>
+            <Text color="whiteAlpha.600" fontSize="sm">
+              Your prime partner for web, app and AI solutions. Transforming ideas into exceptional digital experiences.
             </Text>
-            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <MotionBox variants={staggerItemScale}>
-                <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
-                  <Icon as={FaCode} w={12} h={12} color="gold.500" />
-                  <Heading size="md" fontFamily="'Playfair Display', serif">Innovation</Heading>
-                  <Text color="gray.600" textAlign="center">
-                    We stay ahead of the curve with the latest technologies and best practices.
-                  </Text>
-                </VStack>
-              </MotionBox>
-              <MotionBox variants={staggerItemScale}>
-                <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
-                  <Icon as={FaUsers} w={12} h={12} color="gold.500" />
-                  <Heading size="md" fontFamily="'Playfair Display', serif">Collaboration</Heading>
-                  <Text color="gray.600" textAlign="center">
-                    We work closely with our clients to ensure every project is a perfect fit.
-                  </Text>
-                </VStack>
-              </MotionBox>
-              <MotionBox variants={staggerItemScale}>
-                <VStack spacing={4} p={6} bg="white" borderRadius="2xl" boxShadow="lg">
-                  <Icon as={FaAward} w={12} h={12} color="gold.500" />
-                  <Heading size="md" fontFamily="'Playfair Display', serif">Excellence</Heading>
-                  <Text color="gray.600" textAlign="center">
-                    Quality is at the heart of everything we do, from concept to deployment.
-                  </Text>
-                </VStack>
-              </MotionBox>
-            </MotionBox>
+            <HStack
+              as="a"
+              href="https://www.instagram.com/ossca_prime"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="OSSCA Prime on Instagram"
+              w="40px"
+              h="40px"
+              rounded="full"
+              border="1px solid"
+              borderColor="whiteAlpha.300"
+              justify="center"
+              transition="all 0.3s"
+              _hover={{ bg: GOLD, borderColor: GOLD, color: INK }}
+            >
+              <FaInstagram />
+            </HStack>
           </VStack>
-        </MotionBox>
 
-        {/* Portfolio Section */}
-        <MotionBox
-          id="portfolio"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={motionTransition}
-          viewport={{ once: true }}
-          mt={20}
+          <VStack align="start" spacing={3}>
+            <Text fontSize="xs" fontWeight="700" letterSpacing="0.2em" color={GOLD}>SERVICES</Text>
+            {SERVICES.map((s) => (
+              <Box key={s.link} as={Link} to={s.link} {...linkStyle}>{s.title}</Box>
+            ))}
+          </VStack>
+
+          <VStack align="start" spacing={3}>
+            <Text fontSize="xs" fontWeight="700" letterSpacing="0.2em" color={GOLD}>COMPANY</Text>
+            <Box as="button" onClick={() => onNavigate("about")} {...linkStyle}>About Us</Box>
+            <Box as="button" onClick={() => onNavigate("work")} {...linkStyle}>Portfolio</Box>
+            <Box as="button" onClick={() => onNavigate("testimonials")} {...linkStyle}>Testimonials</Box>
+            <Box as={Link} to="/start-project" {...linkStyle}>Start a Project</Box>
+          </VStack>
+
+          <VStack align="start" spacing={3}>
+            <Text fontSize="xs" fontWeight="700" letterSpacing="0.2em" color={GOLD}>CONTACT</Text>
+            <HStack spacing={2} color="whiteAlpha.700" fontSize="sm">
+              <FaEnvelope />
+              <Box as="a" href={`mailto:${EMAIL}`} _hover={{ color: GOLD_LIGHT }}>{EMAIL}</Box>
+            </HStack>
+            <HStack spacing={2} color="whiteAlpha.700" fontSize="sm">
+              <FaBolt />
+              <Text>Available 24/7 for support</Text>
+            </HStack>
+            <HStack spacing={2} color="whiteAlpha.700" fontSize="sm">
+              <FaGlobeAmericas />
+              <Text>Worldwide service</Text>
+            </HStack>
+          </VStack>
+        </SimpleGrid>
+
+        <Flex
+          mt={16}
+          py={6}
+          borderTop="1px solid"
+          borderColor="whiteAlpha.200"
+          justify="space-between"
+          align="center"
+          direction={{ base: "column", md: "row" }}
+          gap={4}
         >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="lg" fontFamily="'Playfair Display', serif">
-              Our Recent Work
-            </Heading>
-            <Text fontSize="lg" color="gray.600" maxW="2xl">
-              Explore some of our recent projects and see how we've helped businesses 
-              achieve their digital goals.
-            </Text>
-            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <MotionBox variants={staggerItemScale}>
-              <PortfolioCard
-                title="E-Commerce Platform"
-                description="A modern, scalable e-commerce solution with advanced analytics and AI-powered recommendations."
-                image="🛒"
-                tags={["React", "Node.js", "AI", "E-commerce"]}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItemScale}>
-              <PortfolioCard
-                title="Mobile Banking App"
-                description="Secure, user-friendly mobile banking application with biometric authentication."
-                image="🏦"
-                tags={["React Native", "Security", "Fintech", "Mobile"]}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItemScale}>
-              <PortfolioCard
-                title="AI Chatbot System"
-                description="Intelligent customer service chatbot with natural language processing capabilities."
-                image="🤖"
-                tags={["AI", "NLP", "Automation", "Customer Service"]}
-              />
-              </MotionBox>
-            </MotionBox>
-
-            {/* Shopify Stores We've Built */}
-            <Heading size="md" fontFamily="'Playfair Display', serif" mt={12} mb={4}>
-              Shopify Stores We've Built
-            </Heading>
-            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} w="full" maxW="5xl" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <MotionBox variants={staggerItem}>
-              <VStack align="start" spacing={3} p={6} bg="white" borderRadius="2xl" boxShadow="lg" h="full">
-                <Text fontWeight="bold" color="gray.700">👗 Clothing</Text>
-                <VStack align="start" spacing={2}>
-                  <Box as="a" href="https://www.taruni.in" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.taruni.in</Box>
-                  <Box as="a" href="https://www.malikaclothing.qa" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.malikaclothing.qa</Box>
-                  <Box as="a" href="https://www.naaribyardraknair.com" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.naaribyardraknair.com</Box>
-                  <Box as="a" href="https://www.flyhoch.com" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.flyhoch.com</Box>
-                </VStack>
-              </VStack>
-              </MotionBox>
-              <MotionBox variants={staggerItem}>
-              <VStack align="start" spacing={3} p={6} bg="white" borderRadius="2xl" boxShadow="lg" h="full">
-                <Text fontWeight="bold" color="gray.700">🍔 Food & Beverages</Text>
-                <VStack align="start" spacing={2}>
-                  <Box as="a" href="https://gocs.shop/" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">gocs.shop</Box>
-                  <Box as="a" href="https://www.domnom.in" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.domnom.in</Box>
-                </VStack>
-              </VStack>
-              </MotionBox>
-              <MotionBox variants={staggerItem}>
-              <VStack align="start" spacing={3} p={6} bg="white" borderRadius="2xl" boxShadow="lg" h="full">
-                <Text fontWeight="bold" color="gray.700">🏠 Curtains & Home Decor</Text>
-                <VStack align="start" spacing={2}>
-                  <Box as="a" href="https://www.sreeyang.com/" target="_blank" rel="noopener noreferrer" color="gold.500" _hover={{ textDecoration: "underline" }} transition={`all 0.25s ${smoothEase}`} fontSize="sm">www.sreeyang.com</Box>
-                </VStack>
-              </VStack>
-              </MotionBox>
-            </MotionBox>
-          </VStack>
-        </MotionBox>
-
-        {/* Process Section */}
-        <MotionBox
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={motionTransition}
-          viewport={{ once: true }}
-          mt={20}
-        >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="lg" fontFamily="'Playfair Display', serif">
-              How We Work
-            </Heading>
-            <Text fontSize="lg" color="gray.600" maxW="2xl">
-              Our proven process ensures your project is delivered on time, 
-              on budget, and exceeds your expectations.
-            </Text>
-            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 4 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <MotionBox variants={staggerItem}>
-              <ProcessStep
-                step="1"
-                title="Discovery"
-                description="We understand your vision, goals, and requirements through detailed consultation."
-                icon={FaUsers}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItem}>
-              <ProcessStep
-                step="2"
-                title="Design"
-                description="Our team creates wireframes, prototypes, and designs that bring your ideas to life."
-                icon={FaCode}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItem}>
-              <ProcessStep
-                step="3"
-                title="Development"
-                description="We build your solution using cutting-edge technologies and best practices."
-                icon={FaRocket}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItem}>
-              <ProcessStep
-                step="4"
-                title="Launch"
-                description="We deploy your project and provide ongoing support to ensure success."
-                icon={FaAward}
-              />
-              </MotionBox>
-            </MotionBox>
-          </VStack>
-        </MotionBox>
-
-        {/* Testimonials Section */}
-        <MotionBox
-          id="testimonials"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={motionTransition}
-          viewport={{ once: true }}
-          mt={20}
-        >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="lg" fontFamily="'Playfair Display', serif">
-              What Our Clients Say
-            </Heading>
-            <Text fontSize="lg" color="gray.600" maxW="2xl">
-              Don't just take our word for it. Here's what our satisfied clients have to say.
-            </Text>
-            <MotionBox as={SimpleGrid} columns={{ base: 1, md: 3 }} spacing={8} mt={8} variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <MotionBox variants={staggerItemScale}>
-              <TestimonialCard
-                name="Sarah Johnson"
-                role="CEO"
-                company="TechStart Inc."
-                content="OSSCA Prime transformed our digital presence completely. Their attention to detail and innovative approach exceeded all our expectations."
-                rating={5}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItemScale}>
-              <TestimonialCard
-                name="Michael Chen"
-                role="Founder"
-                company="EcoSolutions"
-                content="The AI solution they built for us has revolutionized our customer service. Response times improved by 80% and customer satisfaction is at an all-time high."
-                rating={5}
-              />
-              </MotionBox>
-              <MotionBox variants={staggerItemScale}>
-              <TestimonialCard
-                name="Emily Rodriguez"
-                role="Marketing Director"
-                company="Fashion Forward"
-                content="Working with OSSCA Prime was a game-changer. They delivered our e-commerce platform ahead of schedule and it's been performing flawlessly."
-                rating={5}
-              />
-              </MotionBox>
-            </MotionBox>
-          </VStack>
-        </MotionBox>
-
-        {/* FAQ Section */}
-        <MotionBox
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={motionTransition}
-          viewport={{ once: true }}
-          mt={20}
-        >
-          <VStack spacing={8} textAlign="center">
-            <Heading size="lg" fontFamily="'Playfair Display', serif">
-              Frequently Asked Questions
-            </Heading>
-            <Box maxW="4xl" w="full">
-              <Accordion allowToggle>
-                <AccordionItem>
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left" fontWeight="bold">
-                        What technologies do you specialize in?
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    We specialize in modern web technologies including React, Node.js, Python, 
-                    AI/ML frameworks, mobile development with React Native, and cloud platforms 
-                    like AWS and Azure.
-                  </AccordionPanel>
-                </AccordionItem>
-
-                <AccordionItem>
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left" fontWeight="bold">
-                        How long does a typical project take?
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    Project timelines vary based on complexity. Simple websites take 2-4 weeks, 
-                    while complex applications can take 3-6 months. We provide detailed timelines 
-                    during the discovery phase.
-                  </AccordionPanel>
-                </AccordionItem>
-
-                <AccordionItem>
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left" fontWeight="bold">
-                        Do you provide ongoing support after launch?
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    Yes! We offer comprehensive post-launch support including maintenance, 
-                    updates, bug fixes, and feature enhancements. Support packages are tailored 
-                    to your specific needs.
-                  </AccordionPanel>
-                </AccordionItem>
-
-                <AccordionItem>
-                  <h2>
-                    <AccordionButton>
-                      <Box as="span" flex="1" textAlign="left" fontWeight="bold">
-                        Can you work with our existing team?
-                      </Box>
-                      <AccordionIcon />
-                    </AccordionButton>
-                  </h2>
-                  <AccordionPanel pb={4}>
-                    Absolutely! We excel at collaborating with existing teams, integrating 
-                    seamlessly with your workflow, and providing knowledge transfer to ensure 
-                    smooth handoffs.
-                  </AccordionPanel>
-                </AccordionItem>
-              </Accordion>
-            </Box>
-          </VStack>
-        </MotionBox>
-
-        {/* Enhanced Contact Section */}
-        <Box id="contact" mt={20}>
-          <MotionBox
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={motionTransition}
-            viewport={{ once: true }}
-          >
-            <VStack spacing={12}>
-              {/* Header */}
-              <VStack spacing={4} textAlign="center">
-                <Heading
-                  as="h3"
-                  fontSize={{ base: "3xl", md: "4xl" }}
-                  fontFamily="'Playfair Display', serif"
-                  bgGradient="linear(to-r, #FFD700, #FFA500, #FFD700)"
-                  bgClip="text"
-                  style={{
-                    backgroundSize: "200% auto",
-                    animation: `${shineAnimation} 3s linear infinite`,
-                  }}
-                >
-                  Get in Touch
-                </Heading>
-                <Text fontSize="xl" color="gray.600" maxW="2xl">
-                  Have a project in mind? We're here to turn your vision into reality. 
-                  Let's start a conversation!
-                </Text>
-              </VStack>
-
-              {/* Main Contact Box */}
-              <Box
-                bg="rgba(255,255,255,0.8)"
-                backdropFilter="blur(12px)"
-                rounded="2xl"
-                shadow="2xl"
-                p={{ base: 8, md: 12 }}
-                maxW="5xl"
-                w="full"
-                mx="auto"
-                border="2px solid"
-                borderColor="gold.200"
-              >
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
-                  {/* Left Side - Contact Info */}
-                  <VStack spacing={6} align="start">
-                    <Heading size="md" fontFamily="'Playfair Display', serif">
-                      Contact Information
-                    </Heading>
-                    
-                    {/* Email */}
-                    <HStack
-                      spacing={4}
-                      p={4}
-                      bg="gold.50"
-                      rounded="xl"
-                      w="full"
-                      _hover={{ bg: "gold.100", transform: "translateX(5px)" }}
-                      transition={`all 0.35s ${smoothEase}`}
-                    >
-                      <Box
-                        bg="gold.500"
-                        color="white"
-                        p={3}
-                        rounded="lg"
-                        fontSize="xl"
-                      >
-                        ✉️
-                      </Box>
-                      <VStack spacing={0} align="start">
-                        <Text fontSize="xs" color="gray.500" fontWeight="bold">
-                          EMAIL
-                        </Text>
-                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                          contact.osscaprime@gmail.com
-                        </Text>
-                      </VStack>
-                    </HStack>
-
-                    {/* Response Time */}
-                    <HStack
-                      spacing={4}
-                      p={4}
-                      bg="green.50"
-                      rounded="xl"
-                      w="full"
-                      _hover={{ bg: "green.100", transform: "translateX(5px)" }}
-                      transition={`all 0.35s ${smoothEase}`}
-                    >
-                      <Box
-                        bg="green.500"
-                        color="white"
-                        p={3}
-                        rounded="lg"
-                        fontSize="xl"
-                      >
-                        ⚡
-                      </Box>
-                      <VStack spacing={0} align="start">
-                        <Text fontSize="xs" color="gray.500" fontWeight="bold">
-                          RESPONSE TIME
-                        </Text>
-                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                          Within 24 hours
-                        </Text>
-                      </VStack>
-                    </HStack>
-
-                    {/* Location */}
-                    <HStack
-                      spacing={4}
-                      p={4}
-                      bg="blue.50"
-                      rounded="xl"
-                      w="full"
-                      _hover={{ bg: "blue.100", transform: "translateX(5px)" }}
-                      transition={`all 0.35s ${smoothEase}`}
-                    >
-                      <Box
-                        bg="blue.500"
-                        color="white"
-                        p={3}
-                        rounded="lg"
-                        fontSize="xl"
-                      >
-                        🌍
-                      </Box>
-                      <VStack spacing={0} align="start">
-                        <Text fontSize="xs" color="gray.500" fontWeight="bold">
-                          AVAILABILITY
-                        </Text>
-                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                          Worldwide service, 24/7
-                        </Text>
-                      </VStack>
-                    </HStack>
-
-                    {/* Stats */}
-                    <SimpleGrid columns={2} spacing={4} w="full" mt={4}>
-                      <VStack
-                        p={4}
-                        bg="rgba(255,215,0,0.1)"
-                        rounded="xl"
-                        spacing={1}
-                      >
-                        <Text fontSize="2xl" fontWeight="bold" color="gold.600">
-                          50+
-                        </Text>
-                        <Text fontSize="xs" color="gray.600" textAlign="center">
-                          Projects Delivered
-                        </Text>
-                      </VStack>
-                      <VStack
-                        p={4}
-                        bg="rgba(255,215,0,0.1)"
-                        rounded="xl"
-                        spacing={1}
-                      >
-                        <Text fontSize="2xl" fontWeight="bold" color="gold.600">
-                          100%
-                        </Text>
-                        <Text fontSize="xs" color="gray.600" textAlign="center">
-                          Client Satisfaction
-                        </Text>
-                      </VStack>
-                    </SimpleGrid>
-                  </VStack>
-
-                  {/* Right Side - Quick Actions */}
-                  <VStack spacing={6} justify="center">
-                    <Heading size="md" fontFamily="'Playfair Display', serif">
-                      Quick Actions
-                    </Heading>
-
-                    {/* Email Button */}
-                    <MagneticButton
-                      as="a"
-                      href="mailto:contact.osscaprime@gmail.com"
-                      bg="gold.500"
-                      color="white"
-                      _hover={{ bg: "black.500", color: "gold.500", transform: "scale(1.05)", boxShadow: "2xl" }}
-                      size="lg"
-                      rounded="xl"
-                      w="full"
-                      h="60px"
-                      fontSize="lg"
-                      transition={`all 0.35s ${smoothEase}`}
-                      style={{
-                        backgroundImage: "linear-gradient(120deg, rgba(255,215,0,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,215,0,0.2) 100%)",
-                        backgroundSize: "200% auto",
-                        animation: `${shineAnimation} 5s linear infinite`,
-                      }}
-                    >
-                      <HStack spacing={3}>
-                        <Text fontSize="2xl">✉️</Text>
-                        <VStack spacing={0} align="start">
-                          <Text fontSize="sm" opacity={0.9}>
-                            Send Email
-                          </Text>
-                          <Text fontSize="xs" opacity={0.7}>
-                            Get instant reply
-                          </Text>
-                        </VStack>
-                      </HStack>
-                    </MagneticButton>
-
-                    {/* Instagram Button */}
-                    <MagneticButton
-                      as="a"
-                      href="https://www.instagram.com/ossca_prime"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      variant="outline"
-                      borderColor="gold.500"
-                      borderWidth="2px"
-                      color="gold.500"
-                      _hover={{ bg: "gold.500", color: "white", transform: "scale(1.05)", boxShadow: "xl" }}
-                      size="lg"
-                      rounded="xl"
-                      w="full"
-                      h="60px"
-                      fontSize="lg"
-                      transition={`all 0.35s ${smoothEase}`}
-                    >
-                      <HStack spacing={3}>
-                        <FaInstagram fontSize="24px" />
-                        <VStack spacing={0} align="start">
-                          <Text fontSize="sm">
-                            Follow on Instagram
-                          </Text>
-                          <Text fontSize="xs" opacity={0.7}>
-                            @ossca_prime
-                          </Text>
-                        </VStack>
-                      </HStack>
-                    </MagneticButton>
-
-                    {/* Start Project Button */}
-                    <MagneticButton
-                      as={Link}
-                      to="/start-project"
-                      variant="outline"
-                      borderColor="black.500"
-                      borderWidth="2px"
-                      color="black.500"
-                      _hover={{ bg: "black.500", color: "white", transform: "scale(1.05)", boxShadow: "xl" }}
-                      size="lg"
-                      rounded="xl"
-                      w="full"
-                      h="60px"
-                      fontSize="lg"
-                      transition={`all 0.35s ${smoothEase}`}
-                    >
-                      <HStack spacing={3}>
-                        <FaRocket fontSize="20px" />
-                        <VStack spacing={0} align="start">
-                          <Text fontSize="sm">
-                            Start Your Project
-                          </Text>
-                          <Text fontSize="xs" opacity={0.7}>
-                            Fill detailed form
-                          </Text>
-                        </VStack>
-                      </HStack>
-                    </MagneticButton>
-
-                    <Divider />
-
-                    {/* Social Proof */}
-                    <VStack spacing={2} w="full">
-                      <HStack spacing={1}>
-                        <FaStar color="#FFD700" />
-                        <FaStar color="#FFD700" />
-                        <FaStar color="#FFD700" />
-                        <FaStar color="#FFD700" />
-                        <FaStar color="#FFD700" />
-                      </HStack>
-                      <Text fontSize="sm" color="gray.600" textAlign="center">
-                        Trusted by businesses worldwide
-                      </Text>
-                    </VStack>
-                  </VStack>
-                </SimpleGrid>
-
-                {/* Bottom Note */}
-                <Box
-                  mt={8}
-                  p={4}
-                  bg="rgba(255,215,0,0.05)"
-                  rounded="lg"
-                  borderLeft="4px solid"
-                  borderColor="gold.500"
-                >
-                  <Text fontSize="sm" color="gray.600">
-                    💡 <Box as="span" fontWeight="bold">Quick tip:</Box> For faster response, 
-                    include your project details, budget, and timeline when reaching out!
-                  </Text>
-                </Box>
-              </Box>
-            </VStack>
-          </MotionBox>
-        </Box>
-
- {/* Enhanced Footer */}
-<Box as="footer" mt={20} py={16} bg="rgba(255,255,255,0.5)" backdropFilter="blur(10px)">
-  <Container maxW="7xl">
-    <SimpleGrid columns={{ base: 1, md: 4 }} spacing={8}>
-      {/* Company Info */}
-      <VStack spacing={4} align="start">
-        <Heading size="md" fontFamily="'Playfair Display', serif">
-          OSSCA Prime
-        </Heading>
-        <Text color="gray.600" fontSize="sm">
-          Your prime partner for web, app and AI solutions. 
-          Transforming ideas into exceptional digital experiences.
-        </Text>
-      </VStack>
-
-      {/* Services */}
-      <VStack spacing={4} align="start">
-        <Heading size="sm" color="black.500">
-          Services
-        </Heading>
-        <VStack spacing={2} align="start">
-          <Link to="/web-development" style={{ fontSize: "sm", color: "#666" }}>
-            Web Development
-          </Link>
-          <Link to="/app-development" style={{ fontSize: "sm", color: "#666" }}>
-            App Development
-          </Link>
-          <Link to="/ai-solutions" style={{ fontSize: "sm", color: "#666" }}>
-            AI Solutions
-          </Link>
-          <Link to="/shopify-development" style={{ fontSize: "sm", color: "#666" }}>
-            Shopify Store Development
-          </Link>
-        </VStack>
-      </VStack>
-
-      {/* Company */}
-      <VStack spacing={4} align="start">
-        <Heading size="sm" color="black.500">
-          Company
-        </Heading>
-        <VStack spacing={2} align="start">
-          <Button variant="link" onClick={() => scrollToSection('about')} fontSize="sm" color="gray.600" p={0} h="auto">
-            About Us
-          </Button>
-          <Button variant="link" onClick={() => scrollToSection('portfolio')} fontSize="sm" color="gray.600" p={0} h="auto">
-            Portfolio
-          </Button>
-          <Button variant="link" onClick={() => scrollToSection('testimonials')} fontSize="sm" color="gray.600" p={0} h="auto">
-            Testimonials
-          </Button>
-          <Link to="/start-project" style={{ fontSize: "sm", color: "#666" }}>
-            Start a Project
-          </Link>
-        </VStack>
-      </VStack>
-
-      {/* Contact */}
-      <VStack spacing={4} align="start">
-        <Heading size="sm" color="black.500">
-          Contact
-        </Heading>
-        <VStack spacing={2} align="start">
-          <Text fontSize="sm" color="gray.600">
-            📧 contact.osscaprime@gmail.com
+          <Text fontSize="sm" color="whiteAlpha.500">
+            © {new Date().getFullYear()} OSSCA Prime. All rights reserved.
           </Text>
-          <Text fontSize="sm" color="gray.600">
-            📱 Available 24/7 for support
-          </Text>
-          <Text fontSize="sm" color="gray.600">
-            🌍 Worldwide service
-          </Text>
-        </VStack>
-      </VStack>
-    </SimpleGrid>
+          <HStack spacing={6}>
+            <Box as={Link} to="/terms" {...linkStyle}>Terms & Conditions</Box>
+            <Box as={Link} to="/privacy" {...linkStyle}>Privacy Policy</Box>
+          </HStack>
+        </Flex>
+      </Container>
 
-    <Divider my={8} />
-
-    <VStack spacing={4}>
-      <Text fontSize="sm" color="gray.600" textAlign="center">
-        © {new Date().getFullYear()} OSSCA Prime — Your prime partner for web, app and AI solutions.
+      {/* Oversized wordmark */}
+      <Text
+        aria-hidden
+        textAlign="center"
+        fontWeight="800"
+        letterSpacing="-0.06em"
+        lineHeight="0.8"
+        fontSize={{ base: "22vw", md: "18vw" }}
+        mb="-0.12em"
+        bgGradient="linear(to-b, rgba(212,175,55,0.35), rgba(212,175,55,0))"
+        bgClip="text"
+        color="transparent"
+        userSelect="none"
+        whiteSpace="nowrap"
+      >
+        OSSCA
       </Text>
-      <HStack spacing={6}>
-        <Link
-          to="/terms"
-          style={{ fontSize: "sm", fontWeight: "600", textDecoration: "none", color: "#666" }}
-        >
-          Terms & Conditions
-        </Link>
-        <Link
-          to="/privacy"
-          style={{ fontSize: "sm", fontWeight: "600", textDecoration: "none", color: "#666" }}
-        >
-          Privacy Policy
-        </Link>
-      </HStack>
-    </VStack>
-  </Container>
-</Box>
-</Container>
-</Box>
-);
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+export default function App() {
+  const { scrollYProgress } = useScroll();
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <Box
+        bg={PAPER}
+        minH="100vh"
+        overflowX="hidden"
+        sx={{
+          "::selection": { background: GOLD, color: INK },
+          "section[id]": { scrollMarginTop: "90px" },
+          "@media (prefers-reduced-motion: reduce)": {
+            "*": { animation: "none !important" },
+          },
+        }}
+      >
+        {/* Scroll progress */}
+        <MotionBox
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          h="3px"
+          bgImage={GOLD_GRADIENT}
+          zIndex={1001}
+          style={{ scaleX: scrollYProgress, transformOrigin: "0%" }}
+        />
+
+        <Nav onNavigate={scrollToSection} />
+        <Hero onNavigate={scrollToSection} />
+        <Ticker />
+        <Services />
+        <About />
+        <Work />
+        <Process />
+        <Pricing />
+        <Testimonials />
+        <FAQ />
+        <Contact />
+        <Footer onNavigate={scrollToSection} />
+      </Box>
+    </MotionConfig>
+  );
 }

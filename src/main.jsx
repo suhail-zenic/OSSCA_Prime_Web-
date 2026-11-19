@@ -26,7 +26,19 @@ function ScrollToTop() {
 
 const theme = extendTheme({
   colors: {
-    gold: { 500: "#D4AF37" },
+    // Full scale so gold.50–gold.900 and colorScheme="gold" work across all pages
+    gold: {
+      50: "#FBF6E6",
+      100: "#F5EAC2",
+      200: "#EEDC99",
+      300: "#E5CC6E",
+      400: "#DCBD4F",
+      500: "#D4AF37",
+      600: "#B8952B",
+      700: "#8F7321",
+      800: "#665217",
+      900: "#3D310E"
+    },
     offwhite: { 500: "#FBF9F6" },
     black: { 500: "#000000" }
   },
