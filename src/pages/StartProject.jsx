@@ -345,6 +345,7 @@ ${form.message}`
                     <option value="web-app">Web Application</option>
                     <option value="mobile-app">Mobile App</option>
                     <option value="ai-solution">AI Solution</option>
+                    <option value="shopify">Shopify Store</option>
                     <option value="e-commerce">E-commerce Platform</option>
                     <option value="other">Other</option>
                   </Select>
@@ -360,11 +361,12 @@ ${form.message}`
                     rounded="lg"
                     _focus={{ borderColor: "gold.500", boxShadow: "0 0 0 1px gold.500" }}
                   >
-                    <option value="under-5k">Under $5,000</option>
-                    <option value="5k-10k">$5,000 - $10,000</option>
-                    <option value="10k-25k">$10,000 - $25,000</option>
-                    <option value="25k-50k">$25,000 - $50,000</option>
-                    <option value="over-50k">Over $50,000</option>
+                    <option value="under-500">Under $500</option>
+                    <option value="500-1500">$500 - $1,500</option>
+                    <option value="1500-4000">$1,500 - $4,000</option>
+                    <option value="4000-8000">$4,000 - $8,000</option>
+                    <option value="over-8000">Over $8,000</option>
+                    <option value="not-sure">Not sure yet</option>
                   </Select>
                 </FormControl>
               </SimpleGrid>

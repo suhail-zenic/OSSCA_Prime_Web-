@@ -13,7 +13,7 @@ import { keyframes } from "@emotion/react";
 import {
   FaInstagram, FaRocket, FaUsers, FaAward, FaCode, FaMobileAlt, FaBrain, FaStar, FaQuoteLeft,
   FaArrowRight, FaShopify, FaBars, FaShoppingCart, FaUniversity, FaRobot, FaEnvelope,
-  FaBolt, FaGlobeAmericas, FaCheck, FaCopy, FaSearch, FaPencilRuler, FaLightbulb, FaHandshake,
+  FaBolt, FaGlobeAmericas, FaCheck, FaCopy, FaClock, FaSearch, FaPencilRuler, FaLightbulb, FaHandshake,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import hatImg from "./assets/fedora.png";
@@ -181,10 +181,126 @@ const PROCESS = [
   { title: "Launch", text: "We deploy your project and provide ongoing support to ensure success.", icon: FaRocket },
 ];
 
-const PLANS = [
-  { name: "Basic", blurb: "For individuals and small projects", price: "$299", link: "/basic-features" },
-  { name: "Pro", blurb: "Best for growing startups and businesses ready to scale", price: "$999", link: "/pro-features", featured: true },
-  { name: "Enterprise", blurb: "Tailored solutions for large-scale projects", price: "$1999", link: "/enterprise-features" },
+// Fixed, one-time package prices (USD) for each service.
+const PRICING = [
+  {
+    service: "Websites",
+    icon: FaCode,
+    packages: [
+      {
+        name: "Starter Website",
+        blurb: "A professional online presence for small businesses and personal brands.",
+        price: "$249",
+        delivery: "7 days",
+        features: ["Up to 5 pages", "Mobile-friendly design", "Contact form & WhatsApp button", "Basic SEO setup", "2 revision rounds"],
+      },
+      {
+        name: "Business Website",
+        blurb: "A complete site that brings in leads and grows with you.",
+        price: "$599",
+        delivery: "2–3 weeks",
+        featured: true,
+        features: ["Up to 12 pages", "Custom design", "Blog / CMS you can edit", "On-page SEO + Google Analytics", "Speed optimisation", "3 revision rounds", "30 days free support"],
+      },
+      {
+        name: "Custom Web App",
+        blurb: "Dashboards, portals and platforms built around your workflow.",
+        price: "$1,499",
+        delivery: "4–6 weeks",
+        features: ["User login & accounts", "Database + admin panel", "Third-party API integrations", "Responsive on all devices", "3 revision rounds", "60 days free support"],
+      },
+    ],
+  },
+  {
+    service: "Shopify",
+    icon: FaShopify,
+    packages: [
+      {
+        name: "Store Setup",
+        blurb: "Get your Shopify store live and ready to take orders.",
+        price: "$299",
+        delivery: "7–10 days",
+        features: ["Theme setup & branding", "Up to 25 products added", "Payments & shipping setup", "Essential pages (About, Contact, Policies)", "2 revision rounds"],
+      },
+      {
+        name: "Growth Store",
+        blurb: "A conversion-focused store designed to sell more.",
+        price: "$699",
+        delivery: "2–3 weeks",
+        featured: true,
+        features: ["Custom homepage & product page design", "Up to 100 products added", "Reviews, upsell & marketing apps", "SEO + speed optimisation", "3 revision rounds", "30 days free support"],
+      },
+      {
+        name: "Custom Shopify",
+        blurb: "Fully custom theme and features for established brands.",
+        price: "$1,499",
+        delivery: "4–6 weeks",
+        features: ["Fully custom theme", "Custom features / app integrations", "Store migration (WooCommerce, etc.)", "Unlimited products", "3 revision rounds", "60 days free support"],
+      },
+    ],
+  },
+  {
+    service: "Mobile Apps",
+    icon: FaMobileAlt,
+    packages: [
+      {
+        name: "MVP App",
+        blurb: "Launch your idea fast and test it with real users.",
+        price: "$1,999",
+        delivery: "4–6 weeks",
+        features: ["iOS & Android (cross-platform)", "Up to 8 screens", "User login", "Basic backend", "2 revision rounds"],
+      },
+      {
+        name: "Business App",
+        blurb: "A polished, store-ready app for your customers.",
+        price: "$3,999",
+        delivery: "8–10 weeks",
+        featured: true,
+        features: ["iOS & Android (cross-platform)", "Up to 20 screens", "Backend + admin panel", "Push notifications", "App Store & Play Store publishing", "3 revision rounds", "60 days free support"],
+      },
+      {
+        name: "Advanced App",
+        blurb: "Complex apps with payments, real-time features and integrations.",
+        price: "$7,999",
+        delivery: "12–16 weeks",
+        features: ["Everything in Business App", "In-app payments", "Real-time chat / tracking", "Third-party integrations", "Analytics dashboard", "90 days free support"],
+      },
+    ],
+  },
+  {
+    service: "AI Solutions",
+    icon: FaBrain,
+    packages: [
+      {
+        name: "AI Chatbot",
+        blurb: "A 24/7 assistant that answers your customers instantly.",
+        price: "$399",
+        delivery: "1–2 weeks",
+        features: ["Trained on your FAQs & documents", "Website or WhatsApp", "Lead capture to email", "2 revision rounds"],
+      },
+      {
+        name: "AI Automation",
+        blurb: "Save hours every week by automating repetitive work.",
+        price: "$899",
+        delivery: "2–3 weeks",
+        featured: true,
+        features: ["Up to 3 automated workflows", "Email, CRM & sheet integrations", "AI-powered replies & data entry", "Team training session", "30 days free support"],
+      },
+      {
+        name: "Custom AI System",
+        blurb: "A tailored AI solution built on your own data.",
+        price: "$2,499",
+        delivery: "4–8 weeks",
+        features: ["Custom AI / ML model or LLM app", "Connects to your data & tools", "Admin dashboard", "Security & privacy setup", "60 days free support"],
+      },
+    ],
+  },
+];
+
+const PRICING_TERMS = [
+  { icon: FaHandshake, title: "Fixed price, agreed upfront", text: "The price you see is the price you pay. Scope and cost are confirmed in writing before we start." },
+  { icon: FaPencilRuler, title: "Revisions included", text: "Every package includes revision rounds, so the final result matches what you want." },
+  { icon: FaGlobeAmericas, title: "Third-party costs are separate", text: "Domain, hosting, Shopify plan, paid apps and AI usage fees are paid directly by you, at cost." },
 ];
 
 const TESTIMONIALS = [
@@ -255,6 +371,7 @@ function GoldText({ children, onLight = false, ...props }) {
       backgroundSize="200% auto"
       animation={`${shine} 6s linear infinite`}
       pr="0.08em"
+      display="inline-block"
       {...props}
     >
       {children}
@@ -1111,117 +1228,206 @@ function Process() {
 }
 
 function Pricing() {
+  const [active, setActive] = useState(0);
+  const service = PRICING[active];
+
   return (
     <Box as="section" id="pricing" bg={PAPER} pb={{ base: 24, md: 36 }}>
       <Container maxW="6xl">
         <SectionHeader
           eyebrow="Pricing"
-          title="Transparent plans,"
-          accent="premium results."
-          sub="Every project is tailored — these starting points help you pick the right fit."
+          title="Fair prices."
+          accent="No surprises."
+          sub="Fixed prices for every service, one-time payment in USD. Pick a package, or tell us what you need and we'll quote it."
         />
 
-        <MotionBox
-          as={SimpleGrid}
-          columns={{ base: 1, md: 3 }}
-          spacing={6}
-          mt={16}
-          alignItems="stretch"
-          variants={stagger}
-          {...inViewProps}
-        >
-          {PLANS.map((plan) => {
-            const featured = !!plan.featured;
-            return (
-              <MotionBox key={plan.name} variants={rise} h="full">
-                <Box
-                  position="relative"
-                  h="full"
-                  rounded="3xl"
-                  p="1px"
-                  bgImage={featured ? GOLD_GRADIENT : "none"}
-                  bg={featured ? undefined : "blackAlpha.100"}
-                  transform={{ md: featured ? "translateY(-16px)" : "none" }}
-                  boxShadow={featured ? "0 40px 80px -30px rgba(212,175,55,0.55)" : "none"}
-                  transition="all 0.5s cubic-bezier(0.16,1,0.3,1)"
-                  _hover={{ transform: { base: "translateY(-6px)", md: featured ? "translateY(-24px)" : "translateY(-6px)" } }}
+        {/* Service switcher */}
+        <Flex justify="center" mt={12}>
+          <Flex
+            role="tablist"
+            aria-label="Choose a service"
+            p={1.5}
+            gap={1}
+            rounded={{ base: "3xl", md: "full" }}
+            bg="white"
+            border="1px solid"
+            borderColor="blackAlpha.100"
+            boxShadow="0 10px 30px -15px rgba(0,0,0,0.15)"
+            flexWrap="wrap"
+            justify="center"
+            maxW="full"
+          >
+            {PRICING.map((s, i) => {
+              const selected = i === active;
+              return (
+                <Button
+                  key={s.service}
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setActive(i)}
+                  leftIcon={<Icon as={s.icon} />}
+                  flexShrink={0}
+                  rounded="full"
+                  px={{ base: 4, md: 6 }}
+                  h="48px"
+                  fontWeight="700"
+                  bg={selected ? INK : "transparent"}
+                  color={selected ? GOLD_LIGHT : "gray.600"}
+                  _hover={{ bg: selected ? INK : "blackAlpha.50" }}
                 >
-                  <Flex
-                    direction="column"
-                    h="full"
-                    rounded="calc(1.5rem - 1px)"
-                    bg={featured ? INK : "white"}
-                    color={featured ? "white" : INK}
-                    p={{ base: 8, md: 10 }}
+                  {s.service}
+                </Button>
+              );
+            })}
+          </Flex>
+        </Flex>
+
+        <AnimatePresence mode="wait">
+          <MotionBox
+            key={service.service}
+            role="tabpanel"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease: EASE }}
+          >
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mt={12} alignItems="stretch">
+              {service.packages.map((pkg) => {
+                const featured = !!pkg.featured;
+                return (
+                  <Box
+                    key={pkg.name}
                     position="relative"
-                    overflow="hidden"
+                    h="full"
+                    rounded="3xl"
+                    p="1px"
+                    bgImage={featured ? GOLD_GRADIENT : "none"}
+                    bg={featured ? undefined : "blackAlpha.100"}
+                    boxShadow={featured ? "0 40px 80px -30px rgba(212,175,55,0.55)" : "none"}
+                    transition="transform 0.5s cubic-bezier(0.16,1,0.3,1)"
+                    _hover={{ transform: "translateY(-6px)" }}
                   >
-                    {featured && (
-                      <>
-                        <Box position="absolute" top="-40%" right="-30%" w="80%" h="80%" rounded="full" bg="radial-gradient(circle, rgba(212,175,55,0.3), transparent 65%)" filter="blur(20px)" />
-                        <HStack
-                          position="absolute"
-                          top={6}
-                          right={6}
-                          spacing={1.5}
-                          px={3}
-                          py={1}
-                          rounded="full"
-                          bg={GOLD}
-                          color={INK}
-                          fontSize="xs"
-                          fontWeight="800"
-                        >
-                          <FaStar />
-                          <Text>Most Popular</Text>
-                        </HStack>
-                      </>
-                    )}
-                    <Box position="relative">
-                      <Text fontFamily={SERIF} fontStyle="italic" fontSize="3xl" fontWeight="600" color={featured ? GOLD_LIGHT : INK}>
-                        {plan.name}
-                      </Text>
-                      <Text mt={2} fontSize="sm" color={featured ? "whiteAlpha.700" : "gray.600"} minH="40px">
-                        {plan.blurb}
-                      </Text>
-                      <Text mt={8} fontSize="xs" fontWeight="700" letterSpacing="0.2em" color={featured ? "whiteAlpha.600" : "gray.500"}>
-                        STARTING FROM
-                      </Text>
-                      <HStack align="baseline" spacing={2} mt={1}>
-                        <Text fontSize="6xl" fontWeight="800" letterSpacing="-0.05em" lineHeight="1">
-                          {plan.price}
+                    <Flex
+                      direction="column"
+                      h="full"
+                      rounded="calc(1.5rem - 1px)"
+                      bg={featured ? INK : "white"}
+                      color={featured ? "white" : INK}
+                      p={{ base: 7, md: 9 }}
+                      position="relative"
+                      overflow="hidden"
+                    >
+                      {featured && (
+                        <>
+                          <Box position="absolute" top="-40%" right="-30%" w="80%" h="80%" rounded="full" bg="radial-gradient(circle, rgba(212,175,55,0.3), transparent 65%)" filter="blur(20px)" />
+                          <HStack position="absolute" top={6} right={6} spacing={1.5} px={3} py={1} rounded="full" bg={GOLD} color={INK} fontSize="xs" fontWeight="800">
+                            <FaStar />
+                            <Text>Most Popular</Text>
+                          </HStack>
+                        </>
+                      )}
+                      <Box position="relative">
+                        <Text fontFamily={SERIF} fontStyle="italic" fontSize="2xl" fontWeight="600" color={featured ? GOLD_LIGHT : INK} pr={featured ? 28 : 0}>
+                          {pkg.name}
                         </Text>
-                        <Text color={featured ? "whiteAlpha.600" : "gray.500"}>/project</Text>
-                      </HStack>
-                    </Box>
-                    <Box flex="1" />
-                    {featured ? (
-                      <PrimaryButton as={Link} to={plan.link} mt={10} w="full" position="relative">
-                        See what's included
-                      </PrimaryButton>
-                    ) : (
-                      <Button
-                        as={Link}
-                        to={plan.link}
-                        mt={10}
-                        w="full"
-                        h="56px"
-                        rounded="full"
-                        bg={INK}
-                        color="white"
-                        fontWeight="700"
-                        rightIcon={<FaArrowRight />}
-                        _hover={{ bg: "#2A2A2E", transform: "translateY(-2px)" }}
-                      >
-                        See what's included
-                      </Button>
-                    )}
-                  </Flex>
-                </Box>
-              </MotionBox>
-            );
-          })}
-        </MotionBox>
+                        <Text mt={1} fontSize="sm" color={featured ? "whiteAlpha.700" : "gray.600"} minH="40px">
+                          {pkg.blurb}
+                        </Text>
+                        <HStack align="baseline" spacing={2} mt={6}>
+                          <Text fontSize={{ base: "5xl", md: "6xl" }} fontWeight="800" letterSpacing="-0.05em" lineHeight="1">
+                            {pkg.price}
+                          </Text>
+                          <Text color={featured ? "whiteAlpha.600" : "gray.500"} fontSize="sm">one-time</Text>
+                        </HStack>
+                        <HStack
+                          mt={4}
+                          spacing={2}
+                          display="inline-flex"
+                          px={3}
+                          py={1.5}
+                          rounded="full"
+                          bg={featured ? "whiteAlpha.100" : "rgba(212,175,55,0.12)"}
+                          color={featured ? GOLD_LIGHT : "#7A5A10"}
+                          fontSize="sm"
+                          fontWeight="600"
+                        >
+                          <FaClock />
+                          <Text>Delivered in {pkg.delivery}</Text>
+                        </HStack>
+
+                        <VStack align="stretch" spacing={3} mt={7}>
+                          {pkg.features.map((f) => (
+                            <HStack key={f} align="flex-start" spacing={3}>
+                              <Flex
+                                mt="3px"
+                                w="18px"
+                                h="18px"
+                                rounded="full"
+                                flexShrink={0}
+                                align="center"
+                                justify="center"
+                                bg={featured ? GOLD : INK}
+                                color={featured ? INK : GOLD}
+                                fontSize="9px"
+                              >
+                                <FaCheck />
+                              </Flex>
+                              <Text fontSize="sm" color={featured ? "whiteAlpha.900" : "gray.700"}>{f}</Text>
+                            </HStack>
+                          ))}
+                        </VStack>
+                      </Box>
+                      <Box flex="1" />
+                      {featured ? (
+                        <PrimaryButton as={Link} to="/start-project" mt={9} w="full" position="relative">
+                          Get started
+                        </PrimaryButton>
+                      ) : (
+                        <Button
+                          as={Link}
+                          to="/start-project"
+                          mt={9}
+                          w="full"
+                          h="56px"
+                          rounded="full"
+                          bg={INK}
+                          color="white"
+                          fontWeight="700"
+                          rightIcon={<FaArrowRight />}
+                          _hover={{ bg: "#2A2A2E", transform: "translateY(-2px)" }}
+                        >
+                          Get started
+                        </Button>
+                      )}
+                    </Flex>
+                  </Box>
+                );
+              })}
+            </SimpleGrid>
+          </MotionBox>
+        </AnimatePresence>
+
+        {/* Clear terms */}
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} mt={10}>
+          {PRICING_TERMS.map((t) => (
+            <HStack key={t.title} align="flex-start" spacing={4} p={5} rounded="2xl" bg="white" border="1px solid" borderColor="blackAlpha.100">
+              <Flex w="40px" h="40px" rounded="xl" bg={INK} align="center" justify="center" flexShrink={0}>
+                <Icon as={t.icon} color={GOLD} />
+              </Flex>
+              <Box>
+                <Text fontWeight="700" color={INK}>{t.title}</Text>
+                <Text fontSize="sm" color="gray.600" mt={1}>{t.text}</Text>
+              </Box>
+            </HStack>
+          ))}
+        </SimpleGrid>
+
+        <Text textAlign="center" mt={8} color="gray.600">
+          Need something not listed here?{" "}
+          <Box as={Link} to="/start-project" color="#7A5A10" fontWeight="700" textDecoration="underline" textUnderlineOffset="4px">
+            Get a free custom quote
+          </Box>
+        </Text>
       </Container>
     </Box>
   );
