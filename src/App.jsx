@@ -92,10 +92,10 @@ const NAV = [
 const ROTATING = ["websites", "mobile apps", "AI systems", "Shopify stores"];
 
 const STATS = [
-  { value: "500+", label: "Projects completed" },
-  { value: "500+", label: "Happy clients" },
+  { value: "50+", label: "Projects completed" },
+  { value: "35+", label: "Happy clients" },
   { value: "5+", label: "Years of experience" },
-  { value: "100%", label: "Client satisfaction" },
+  { value: "98%", label: "Client satisfaction" },
 ];
 
 const SERVICES = [
